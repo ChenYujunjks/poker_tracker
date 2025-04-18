@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>扑克玩家</title>
+</head>
+<body>
+    <h1>玩家列表</h1>
+    <ul>
+        {{range .players}}
+        <li>{{.Name}}</li>
+        {{end}}
+    </ul>
+    <form id="add-player-form">
+        <input type="text" id="player-name" placeholder="请输入玩家姓名">
+        <button type="submit">添加玩家</button>
+    </form>
+    <script>
+        document.getElementById('add-player-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const name = document.getElementById('player-name').value;
+            fetch('/api/players', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({name: name})
+            }).then(response => {
+                if (response.ok) {
+                    location.reload(); // 添加成功后刷新页面
+                }
+            });
+        });
+    </script>
+</body>
+</html>

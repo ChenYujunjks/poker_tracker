@@ -1,25 +1,40 @@
 package db
 
 import (
+	"fmt"
 	"log"
-
+	"os"
 	"poker-tracker/internal/model"
 
+	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
-// DB 全局数据库对象，可以在各模块复用
 var DB *gorm.DB
 
-// ConnectDatabase 建立数据库连接
 func ConnectDatabase() *gorm.DB {
-	// 请根据实际情况修改 dsn 参数（用户名、密码、地址、数据库名等）
-	dsn := "user:password@tcp(127.0.0.1:3306)/poker_db?charset=utf8mb4&parseTime=True&loc=Local"
-	var err error
+	// 加载 .env 文件
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("无法加载 .env 文件:", err)
+	}
+
+	// 从环境变量中读取数据库连接信息
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbName := os.Getenv("DB_NAME")
+
+	// 构建 DSN
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		dbUser, dbPassword, dbHost, dbPort, dbName)
+
+	// 连接数据库
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatal("数据库连接失败：", err)
+		log.Fatal("数据库连接失败:", err)
 	}
 	return DB
 }
