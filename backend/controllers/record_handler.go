@@ -2,8 +2,8 @@ package handler
 
 import (
 	"net/http"
-	"poker-tracker/internal/db"
-	"poker-tracker/internal/model"
+	"poker-tracker/db"
+	"poker-tracker/model"
 
 	"github.com/gin-gonic/gin"
 )

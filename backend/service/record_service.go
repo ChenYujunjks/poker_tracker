@@ -1,8 +1,8 @@
 package service
 
 import (
-	"poker-tracker/internal/db"
-	"poker-tracker/internal/model"
+	"poker-tracker/db"
+	"poker-tracker/model"
 	"time"
 
 	"gorm.io/gorm"

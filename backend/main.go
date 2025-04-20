@@ -2,9 +2,9 @@ package main
 
 import (
 	"net/http"
-	"poker-tracker/internal/db"
-	"poker-tracker/internal/handler"
-	"poker-tracker/internal/model"
+	c "poker-tracker/controllers"
+	"poker-tracker/db"
+	"poker-tracker/model"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,8 +31,8 @@ func main() {
 	})
 
 	// API 路由
-	router.GET("/api/players", handler.GetPlayers)
-	router.POST("/api/gamerecord", handler.CreateGameRecord)
+	router.GET("/api/players", c.GetPlayers)
+	router.POST("/api/gamerecord", c.CreateGameRecord)
 
 	// 添加玩家 API
 	router.POST("/api/players", func(c *gin.Context) {

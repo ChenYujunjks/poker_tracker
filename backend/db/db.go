@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"poker-tracker/internal/model"
+	"poker-tracker/model"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
@@ -20,7 +20,6 @@ func ConnectDatabase() *gorm.DB {
 		log.Fatal("无法加载 .env 文件:", err)
 	}
 
-	// 从环境变量中读取数据库连接信息
 	dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASSWORD")
 	dbHost := os.Getenv("DB_HOST")
