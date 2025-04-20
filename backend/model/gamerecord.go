@@ -1,11 +1,18 @@
 package model
 
-// GameRecord 记录每局中每个玩家的数据
+import (
+	"gorm.io/gorm"
+)
+
+// GameRecord 定义游戏记录模型，对应数据库中的 GameRecord 表
 type GameRecord struct {
-	RecordID  uint    `gorm:"primaryKey;autoIncrement" json:"record_id"`
-	SessionID uint    `gorm:"not null" json:"session_id"`
-	PlayerID  uint    `gorm:"not null" json:"player_id"`
-	BuyIn     float64 `gorm:"not null" json:"buy_in"`
-	CashOut   float64 `gorm:"not null" json:"cash_out"`
-	Paid      bool    `gorm:"default:false" json:"paid"`
+	gorm.Model
+	SessionID uint    `gorm:"column:session_id;not null"`
+	PlayerID  uint    `gorm:"column:player_id;not null"`
+	BuyIn     float64 `gorm:"column:buy_in;type:decimal(10,2);not null"`
+	CashOut   float64 `gorm:"column:cash_out;type:decimal(10,2);not null"`
+	Paid      bool    `gorm:"column:paid;default:false"`
+	// 外键关联
+	Session Session `gorm:"foreignKey:SessionID;references:ID"`
+	Player  Player  `gorm:"foreignKey:PlayerID;references:ID"`
 }

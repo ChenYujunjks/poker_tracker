@@ -1,7 +1,11 @@
 package model
 
-// Player 代表玩家基本信息
+import (
+	"gorm.io/gorm"
+)
+
+// Player 定义玩家模型，对应数据库中的 Player 表
 type Player struct {
-	PlayerID uint   `gorm:"primaryKey;autoIncrement" json:"player_id"`
-	Name     string `gorm:"size:50;not null" json:"name"`
+	gorm.Model
+	Name string `gorm:"column:name;type:varchar(50);not null"`
 }

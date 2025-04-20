@@ -14,7 +14,6 @@ func main() {
 	database := db.ConnectDatabase()
 	db.Migrate(database)
 
-	// 初始化 Gin 路由
 	router := gin.Default()
 
 	// 加载 HTML 模板
@@ -48,6 +47,5 @@ func main() {
 		c.JSON(http.StatusOK, player)
 	})
 
-	// 监听端口
 	router.Run(":8080")
 }

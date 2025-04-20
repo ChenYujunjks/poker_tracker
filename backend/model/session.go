@@ -1,10 +1,14 @@
 package model
 
-import "time"
+import (
+	"time"
 
-// Session 代表一局牌的信息
+	"gorm.io/gorm"
+)
+
+// Session 定义会话模型，对应数据库中的 Session 表
 type Session struct {
-	SessionID   uint      `gorm:"primaryKey;autoIncrement" json:"session_id"`
-	Date        time.Time `gorm:"not null" json:"date"`
-	Description string    `json:"description"`
+	gorm.Model
+	Date        time.Time `gorm:"column:date;type:date;not null"`
+	Description string    `gorm:"column:description;type:varchar(255)"`
 }

@@ -40,7 +40,7 @@ func ConnectDatabase() *gorm.DB {
 
 // Migrate 进行数据库自动迁移
 func Migrate(db *gorm.DB) {
-	err := db.AutoMigrate(&model.Session{}, &model.Player{}, &model.GameRecord{})
+	err := db.AutoMigrate(&model.User{}, &model.Session{}, &model.Player{}, &model.GameRecord{})
 	if err != nil {
 		log.Fatal("数据库迁移失败：", err)
 	}
