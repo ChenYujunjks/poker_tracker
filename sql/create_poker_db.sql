@@ -2,6 +2,11 @@
 CREATE DATABASE IF NOT EXISTS poker_db;
 USE poker_db;
 
+CREATE TABLE IF NOT EXISTS User (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL
+);
 -- 创建 Session 表：用于记录每局牌（poker session）的信息
 CREATE TABLE IF NOT EXISTS Session (
     session_id INT AUTO_INCREMENT PRIMARY KEY,
