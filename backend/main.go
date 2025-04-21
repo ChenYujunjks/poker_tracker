@@ -18,7 +18,6 @@ func main() {
 
 	router := gin.Default()
 
-	// 加载 HTML 模板（如你有 SSR 页面）
 	router.LoadHTMLGlob("templates/*")
 
 	// 首页（不建议用于前后端分离项目，但可保留）
