@@ -12,7 +12,6 @@ import (
 )
 
 func main() {
-	// 连接数据库并迁移模型
 	database := db.ConnectDatabase()
 	db.Migrate(database)
 

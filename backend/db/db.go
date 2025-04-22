@@ -15,7 +15,8 @@ var DB *gorm.DB
 func ConnectDatabase() *gorm.DB {
 	// 构建 DSN
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		config.DBUser, config.DBPassword, config.DBHost, config.DBPort, config.DBName)
+		config.DBUser(), config.DBPassword(), config.DBHost(), config.DBPort(), config.DBName())
+
 	var err error
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
