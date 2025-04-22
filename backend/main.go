@@ -41,7 +41,7 @@ func main() {
 		auth.GET("/me", c.GetMe)
 
 		auth.GET("/players", c.GetPlayers)
-		auth.POST("/gamerecord", c.CreateGameRecord)
+		//auth.POST("/gamerecord", c.CreateGameRecord)
 
 		auth.POST("/players", func(c *gin.Context) {
 			var player model.Player
