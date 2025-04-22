@@ -2,23 +2,33 @@ package main
 
 import (
 	"net/http"
-
 	c "poker-tracker/controllers"
 	"poker-tracker/db"
 	"poker-tracker/middleware"
 	"poker-tracker/model"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	// 连接数据库并迁移模型
 	database := db.ConnectDatabase()
 	db.Migrate(database)
 
 	router := gin.Default()
 
 	router.LoadHTMLGlob("templates/*")
+
+	// 配置 CORS
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"},                   // 允许 Next.js 前端域名
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}, // 允许的 HTTP 方法
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"}, // 允许的请求头
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,           // 如果需要支持 cookie 或认证
+		MaxAge:           12 * time.Hour, // 预检请求缓存时间
+	}))
 
 	// 首页（不建议用于前后端分离项目，但可保留）
 	router.GET("/", func(c *gin.Context) {
@@ -41,20 +51,10 @@ func main() {
 		auth.GET("/me", c.GetMe)
 
 		auth.GET("/players", c.GetPlayers)
-		auth.POST("/gamerecord", c.CreateGameRecord)
 
-		auth.POST("/players", func(c *gin.Context) {
-			var player model.Player
-			if err := c.ShouldBindJSON(&player); err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-				return
-			}
-			if err := db.DB.Create(&player).Error; err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				return
-			}
-			c.JSON(http.StatusOK, player)
-		})
+		auth.POST("/players", c.CreatePlayer)
+
+		//auth.POST("/gamerecord", c.CreateGameRecord)
 	}
 
 	router.Run(":8080")
