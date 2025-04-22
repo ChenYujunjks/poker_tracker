@@ -2,13 +2,12 @@ package middleware
 
 import (
 	"net/http"
+	"poker-tracker/config"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
-
-var jwtKey = []byte("your-secret-key") // 建议从 .env 文件读取
 
 func JWTAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -21,7 +20,7 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		token, err := jwt.ParseWithClaims(tokenString, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
-			return jwtKey, nil
+			return config.JwtKey, nil
 		})
 
 		if err != nil || !token.Valid {

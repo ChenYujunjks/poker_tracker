@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"poker-tracker/config"
 	"poker-tracker/db"
 	"poker-tracker/model"
 	"time"
@@ -12,8 +13,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var jwtKey = []byte("your-secret-key") // 建议从环境变量中读取
-
 func Register(c *gin.Context) {
 	var user model.User
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -21,7 +20,6 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	// 加密密码
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "密码加密失败"})
@@ -98,5 +96,5 @@ func generateJWT(user model.User) (string, error) {
 		Subject:   fmt.Sprintf("%d", user.ID),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtKey)
+	return token.SignedString(config.JwtKey)
 }
