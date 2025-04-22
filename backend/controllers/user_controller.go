@@ -96,5 +96,5 @@ func generateJWT(user model.User) (string, error) {
 		Subject:   fmt.Sprintf("%d", user.ID),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(config.JwtKey)
+	return token.SignedString([]byte(config.JwtKey()))
 }
