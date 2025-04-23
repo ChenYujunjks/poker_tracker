@@ -1,53 +1,97 @@
+// controllers/player_controller.go
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"poker-tracker/db"
 	"poker-tracker/model"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-// GetPlayers 获取当前登录用户的所有玩家
+// 定义响应结构体（可放在函数内部或文件顶部）
+type PlayerResponse struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
+}
+
+// GetPlayers 获取当前用户的所有玩家
 func GetPlayers(c *gin.Context) {
-	userIDRaw, exists := c.Get("userID")
+	// 从上下文获取 userID
+	userIDInterface, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "未登录"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "用户未登录"})
 		return
 	}
-	userID, _ := strconv.ParseUint(userIDRaw.(string), 10, 64)
 
+	// 类型断言为 uint
+	userID, ok := userIDInterface.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "用户ID类型错误"})
+		return
+	}
+
+	// 查询该用户的所有玩家
 	var players []model.Player
 	if err := db.DB.Where("user_id = ?", userID).Find(&players).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取玩家失败"})
 		return
 	}
 
-	c.JSON(http.StatusOK, players)
+	// 构造精简响应
+	var response []PlayerResponse
+	for _, p := range players {
+		response = append(response, PlayerResponse{
+			ID:   p.ID,
+			Name: p.Name,
+		})
+	}
+	log.Printf("返回玩家列表: %v", response)
+	c.JSON(http.StatusOK, response)
+
 }
 
-// CreatePlayer 为当前用户添加一个玩家
+// CreatePlayer 创建新玩家并绑定当前用户
 func CreatePlayer(c *gin.Context) {
-	userIDRaw, exists := c.Get("userID")
+	// 请求体结构
+	var req struct {
+		Name string `json:"name" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的请求数据"})
+		return
+	}
+
+	// 获取 userID
+	userIDInterface, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "未登录"})
-		return
-	}
-	userID, _ := strconv.ParseUint(userIDRaw.(string), 10, 64)
-
-	var player model.Player
-	if err := c.ShouldBindJSON(&player); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "请求数据格式错误"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "用户未登录"})
 		return
 	}
 
-	player.UserID = uint(userID) // 绑定当前用户
+	userID, ok := userIDInterface.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "用户ID类型错误"})
+		return
+	}
+
+	// 创建新玩家
+	player := model.Player{
+		Name:   req.Name,
+		UserID: userID,
+	}
 
 	if err := db.DB.Create(&player).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "添加玩家失败"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "创建玩家失败"})
 		return
 	}
-
-	c.JSON(http.StatusOK, player)
+	log.Printf("新玩家创建成功: %v", PlayerResponse{
+		ID:   player.ID,
+		Name: player.Name,
+	})
+	c.JSON(http.StatusCreated, PlayerResponse{
+		ID:   player.ID,
+		Name: player.Name,
+	})
 }
