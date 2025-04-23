@@ -17,22 +17,26 @@ export default function Register() {
     const data = await res.json();
     if (res.ok) {
       alert("注册成功，请登录");
-      router.push("/login"); // 跳转到登录页面
+      router.push("/login");
     } else {
       alert(data.error || "注册失败");
     }
   };
 
   return (
-    <div>
-      <h1>注册</h1>
-      <form onSubmit={handleSubmit}>
+    <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center px-4">
+      <h1 className="text-3xl font-bold mb-6">注册账号</h1>
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-4 w-full max-w-sm bg-gray-900 p-6 rounded-lg shadow-md"
+      >
         <input
           type="text"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder="用户名"
           required
+          className="px-4 py-2 rounded bg-gray-800 text-white placeholder-gray-500 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <input
           type="password"
@@ -40,11 +44,20 @@ export default function Register() {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="密码"
           required
+          className="px-4 py-2 rounded bg-gray-800 text-white placeholder-gray-500 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        <button type="submit">注册</button>
+        <button
+          type="submit"
+          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+        >
+          注册
+        </button>
       </form>
-      <p>
-        已有账号？<a href="/login">去登录</a>
+      <p className="mt-4 text-gray-400 text-sm">
+        已有账号？{" "}
+        <a href="/login" className="text-blue-400 hover:underline">
+          去登录
+        </a>
       </p>
     </div>
   );
