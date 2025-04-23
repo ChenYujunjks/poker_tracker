@@ -2,12 +2,19 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"poker-tracker/db"
 	"poker-tracker/model"
 
 	"github.com/gin-gonic/gin"
 )
+
+// 定义响应结构体（可放在函数内部或文件顶部）
+type PlayerResponse struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
+}
 
 // GetPlayers 获取当前用户的所有玩家
 func GetPlayers(c *gin.Context) {
@@ -32,7 +39,17 @@ func GetPlayers(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, players)
+	// 构造精简响应
+	var response []PlayerResponse
+	for _, p := range players {
+		response = append(response, PlayerResponse{
+			ID:   p.ID,
+			Name: p.Name,
+		})
+	}
+	log.Printf("返回玩家列表: %v", response)
+	c.JSON(http.StatusOK, response)
+
 }
 
 // CreatePlayer 创建新玩家并绑定当前用户
@@ -69,6 +86,12 @@ func CreatePlayer(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "创建玩家失败"})
 		return
 	}
-
-	c.JSON(http.StatusCreated, player)
+	log.Printf("新玩家创建成功: %v", PlayerResponse{
+		ID:   player.ID,
+		Name: player.Name,
+	})
+	c.JSON(http.StatusCreated, PlayerResponse{
+		ID:   player.ID,
+		Name: player.Name,
+	})
 }

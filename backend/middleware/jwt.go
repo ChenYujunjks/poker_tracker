@@ -3,6 +3,7 @@ package middleware
 import (
 	"net/http"
 	"poker-tracker/config"
+	"strconv"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
@@ -36,7 +37,15 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("userID", claims.Subject)
+		// 👇 转换 string → uint 并存入上下文
+		uid64, err := strconv.ParseUint(claims.Subject, 10, 64)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID in token"})
+			c.Abort()
+			return
+		}
+		c.Set("userID", uint(uid64))
+
 		c.Next()
 	}
 }
