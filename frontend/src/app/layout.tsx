@@ -1,6 +1,7 @@
 "use client";
 import { ReactNode, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import "./globals.css";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
