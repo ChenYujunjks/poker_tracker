@@ -9,5 +9,6 @@ type Player struct {
 	gorm.Model
 	Name   string `gorm:"column:name;type:varchar(50);not null"`
 	UserID uint   `gorm:"column:user_id;not null"`
-	User   User   `gorm:"foreignKey:UserID"` //foreign key relationship with User
+	//foreign key relationship with User
+	User User `gorm:"foreignKey:UserID"`
 }
