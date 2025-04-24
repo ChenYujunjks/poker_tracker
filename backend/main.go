@@ -53,6 +53,8 @@ func main() {
 		auth.GET("/players", c.GetPlayers)
 
 		auth.POST("/players", c.CreatePlayer)
+		auth.DELETE("/players/:id", c.DeletePlayer)
+		auth.PUT("/players/:id", c.UpdatePlayer)
 
 		//auth.POST("/gamerecord", c.CreateGameRecord)
 	}
