@@ -25,7 +25,6 @@ func GetPlayers(c *gin.Context) {
 		return
 	}
 
-	// 类型断言为 uint
 	userID, ok := userIDInterface.(uint)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "用户ID类型错误"})
@@ -54,7 +53,6 @@ func GetPlayers(c *gin.Context) {
 
 // CreatePlayer 创建新玩家并绑定当前用户
 func CreatePlayer(c *gin.Context) {
-	// 请求体结构
 	var req struct {
 		Name string `json:"name" binding:"required"`
 	}
@@ -65,18 +63,19 @@ func CreatePlayer(c *gin.Context) {
 
 	// 获取 userID
 	userIDInterface, exists := c.Get("userID")
+
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "用户未登录"})
 		return
 	}
 
 	userID, ok := userIDInterface.(uint)
+
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "用户ID类型错误"})
 		return
 	}
 
-	// 创建新玩家
 	player := model.Player{
 		Name:   req.Name,
 		UserID: userID,
@@ -86,10 +85,6 @@ func CreatePlayer(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "创建玩家失败"})
 		return
 	}
-	log.Printf("新玩家创建成功: %v", PlayerResponse{
-		ID:   player.ID,
-		Name: player.Name,
-	})
 	c.JSON(http.StatusCreated, PlayerResponse{
 		ID:   player.ID,
 		Name: player.Name,
