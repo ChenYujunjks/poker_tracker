@@ -115,7 +115,6 @@ func DeletePlayer(c *gin.Context) {
 		return
 	}
 
-	// 删除玩家
 	if err := db.DB.Delete(&player).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "删除玩家失败"})
 		return
