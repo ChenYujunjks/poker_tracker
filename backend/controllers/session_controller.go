@@ -1,67 +1,50 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"poker-tracker/db"
 	"poker-tracker/model"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-// GetSessions 获取所有会话
+// SessionResponse 定义响应体
+type SessionResponse struct {
+	ID   uint      `json:"id"`
+	Date time.Time `json:"date"`
+}
+
+// GetSessions 获取当前用户的所有 Session
 func GetSessions(c *gin.Context) {
+	// 获取 userID
+	userIDInterface, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "用户未登录"})
+		return
+	}
+	userID, ok := userIDInterface.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "用户ID类型错误"})
+		return
+	}
+
+	// 查询当前用户的所有 session
 	var sessions []model.Session
-	if err := db.DB.Find(&sessions).Error; err != nil {
+	if err := db.DB.Where("user_id = ?", userID).Find(&sessions).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取会话失败"})
 		return
 	}
-	c.JSON(http.StatusOK, sessions)
-}
 
-// GetSessionsByDate 按日期范围获取会话
-func GetSessionsByDate(c *gin.Context) {
-	start := c.Query("start")
-	end := c.Query("end")
-	if start == "" || end == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "需要提供开始和结束日期"})
-		return
+	// 构造返回格式
+	var response []SessionResponse
+	for _, s := range sessions {
+		response = append(response, SessionResponse{
+			ID:   s.ID,
+			Date: s.Date,
+		})
 	}
-
-	var sessions []model.Session
-	if err := db.DB.Where("date BETWEEN ? AND ?", start, end).Find(&sessions).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取会话失败"})
-		return
-	}
-	c.JSON(http.StatusOK, sessions)
-}
-
-// GetSessionDetails 获取单个会话详情
-func GetSessionDetails(c *gin.Context) {
-	id := c.Param("id")
-	var session model.Session
-	if err := db.DB.First(&session, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "会话未找到"})
-		return
-	}
-
-	type Result struct {
-		PlayerName string  `json:"player_name"`
-		BuyIn      float64 `json:"buy_in"`
-		CashOut    float64 `json:"cash_out"`
-		Paid       bool    `json:"paid"`
-	}
-	var results []Result
-	if err := db.DB.Table("game_records").
-		Select("players.name as player_name, game_records.buy_in, game_records.cash_out, game_records.paid").
-		Joins("join players on players.id = game_records.player_id").
-		Where("game_records.session_id = ?", id).
-		Scan(&results).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取会话详情失败"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"session": session,
-		"records": results,
-	})
+	log.Printf("返回会话列表: %v", response)
+	c.JSON(http.StatusOK, response)
 }
