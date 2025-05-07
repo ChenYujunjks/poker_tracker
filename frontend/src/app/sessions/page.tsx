@@ -1,6 +1,3 @@
-"use client";
-
-import ThemeToggle from "@/components/ThemeToggle";
 import CustomCalendar from "@/components/CustomCalendar";
 
 export default function CalendarPage() {
@@ -10,7 +7,6 @@ export default function CalendarPage() {
              bg-[rgb(var(--background))] text-[rgb(var(--foreground))]"
     >
       <h1 className="text-2xl font-bold">Poker Session Tracker</h1>
-      <ThemeToggle />
       <CustomCalendar />
     </main>
   );

@@ -4,12 +4,13 @@ import { ReactNode, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ThemeProvider } from "next-themes";
-import ThemeToggle from "@/components/ThemeToggle"; // 你需要有这个组件
+import ThemeToggle from "@/components/ThemeToggle";
 import "./globals.css";
+import "react-day-picker/dist/style.css";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
-
+  //但这里的useeffect 只会在打开网页触发一次 再次自己选择跳转到calendar 就不会生效了
   useEffect(() => {
     const token = localStorage.getItem("token");
     const pathname = window.location.pathname;
