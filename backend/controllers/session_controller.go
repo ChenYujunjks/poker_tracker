@@ -97,6 +97,39 @@ func CreateSession(c *gin.Context) {
 	})
 }
 
+// DeleteSession 删除指定 Session（只能删除属于自己的）
+func DeleteSession(c *gin.Context) {
+	// 1. 取当前登录用户 ID
+	userIDInterface, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "用户未登录"})
+		return
+	}
+	userID, ok := userIDInterface.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "用户ID类型错误"})
+		return
+	}
+
+	// 2. 获取 Session ID
+	sessionID := c.Param("id")
+
+	// 3. 查找并验证归属
+	var session model.Session
+	if err := db.DB.Where("id = ? AND user_id = ?", sessionID, userID).First(&session).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "未找到该 Session 或无权限删除"})
+		return
+	}
+
+	// 4. 删除
+	if err := db.DB.Delete(&session).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "删除 Session 失败"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Session 删除成功"})
+}
+
 // UpdateSession 修改指定 Session 的日期（只能操作属于自己的）
 func UpdateSession(c *gin.Context) {
 	// 1. 取当前登录用户 ID
@@ -146,37 +179,4 @@ func UpdateSession(c *gin.Context) {
 		ID:   session.ID,
 		Date: session.Date,
 	})
-}
-
-// DeleteSession 删除指定 Session（只能删除属于自己的）
-func DeleteSession(c *gin.Context) {
-	// 1. 取当前登录用户 ID
-	userIDInterface, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "用户未登录"})
-		return
-	}
-	userID, ok := userIDInterface.(uint)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "用户ID类型错误"})
-		return
-	}
-
-	// 2. 获取 Session ID
-	sessionID := c.Param("id")
-
-	// 3. 查找并验证归属
-	var session model.Session
-	if err := db.DB.Where("id = ? AND user_id = ?", sessionID, userID).First(&session).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "未找到该 Session 或无权限删除"})
-		return
-	}
-
-	// 4. 删除
-	if err := db.DB.Delete(&session).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "删除 Session 失败"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Session 删除成功"})
 }
