@@ -48,15 +48,23 @@ func main() {
 	auth := router.Group("/api")
 	auth.Use(middleware.JWTAuthMiddleware())
 	{
+		// 当前登录用户信息
 		auth.GET("/me", c.GetMe)
 
+		// ---------- Player ----------
 		auth.GET("/players", c.GetPlayers)
-
 		auth.POST("/players", c.CreatePlayer)
-		auth.DELETE("/players/:id", c.DeletePlayer)
 		auth.PUT("/players/:id", c.UpdatePlayer)
+		auth.DELETE("/players/:id", c.DeletePlayer)
 
-		//auth.POST("/gamerecord", c.CreateGameRecord)
+		// ---------- Session ----------
+		auth.GET("/sessions", c.GetSessions)          // 查询当前用户全部 Session
+		auth.POST("/sessions", c.CreateSession)       // 新建 Session
+		auth.PUT("/sessions/:id", c.UpdateSession)    // 修改 Session 日期
+		auth.DELETE("/sessions/:id", c.DeleteSession) // 删除 Session
+
+		// ---------- 未来的 GameRecord ----------
+		// auth.POST("/gamerecord", c.CreateGameRecord)
 	}
 
 	router.Run(":8080")
