@@ -1,7 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { ReactNode } from "react";
 import Link from "next/link";
 import { ThemeProvider } from "next-themes";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -9,17 +8,6 @@ import "./globals.css";
 import "react-day-picker/dist/style.css";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  const router = useRouter();
-  //但这里的useeffect 只会在打开网页触发一次 再次自己选择跳转到calendar 就不会生效了
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const pathname = window.location.pathname;
-    // 如果没有 token 且不在登录或注册页面，则跳转到登录页
-    if (!token && pathname !== "/login" && pathname !== "/register") {
-      router.push("/login");
-    }
-  }, [router]);
-
   return (
     <html lang="zh" suppressHydrationWarning>
       <body className="bg-gray-100 text-gray-900 dark:bg-zinc-900 dark:text-white transition-colors">
@@ -43,10 +31,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   Sessions
                 </Link>
                 <Link
-                  href="/calendar"
+                  href="/login"
                   className="px-4 py-2 rounded border hover:bg-[#a7f3d0] hover:text-zinc-900 dark:hover:bg-[#34d399]/30 text-sm"
                 >
-                  Calendar
+                  Login
                 </Link>
                 <Link
                   href="/api/logout"

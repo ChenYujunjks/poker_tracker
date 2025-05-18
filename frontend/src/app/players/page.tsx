@@ -1,19 +1,17 @@
+// app/players/page.tsx
 "use client";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import WithAuth from "@/components/WithAuth";
 
-export default function Players() {
+function Players() {
   const [players, setPlayers] = useState<any[]>([]);
   const [name, setName] = useState("");
   const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/login");
-      return;
-    }
-
     fetch("http://localhost:8080/api/players", {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -22,11 +20,11 @@ export default function Players() {
         return res.json();
       })
       .then((data) => {
-        console.log("添加玩家成功", data);
+        console.log("玩家数据获取成功", data);
         setPlayers(data);
       })
       .catch((err) => alert(err.message));
-  }, [router]);
+  }, []);
 
   const handleAddPlayer = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,3 +103,6 @@ export default function Players() {
     </div>
   );
 }
+
+// 使用 HOC 封装
+export default WithAuth(Players);

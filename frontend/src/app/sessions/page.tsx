@@ -1,6 +1,9 @@
-import CustomCalendar from "@/components/CustomCalendar";
+"use client";
 
-export default function CalendarPage() {
+import CustomCalendar from "@/components/CustomCalendar";
+import WithAuth from "@/components/WithAuth";
+
+function SessionPage() {
   return (
     <main
       className="min-h-screen flex flex-col items-center gap-6 py-10
@@ -11,3 +14,5 @@ export default function CalendarPage() {
     </main>
   );
 }
+
+export default WithAuth(SessionPage);
