@@ -1,6 +1,10 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 
 export default function Register() {
   const [username, setUsername] = useState("");
@@ -24,41 +28,44 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center px-4">
-      <h1 className="text-3xl font-bold mb-6">注册账号</h1>
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col gap-4 w-full max-w-sm bg-gray-900 p-6 rounded-lg shadow-md"
-      >
-        <input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="用户名"
-          required
-          className="px-4 py-2 rounded bg-gray-800 text-white placeholder-gray-500 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="密码"
-          required
-          className="px-4 py-2 rounded bg-gray-800 text-white placeholder-gray-500 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          type="submit"
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
-        >
-          注册
-        </button>
-      </form>
-      <p className="mt-4 text-gray-400 text-sm">
-        已有账号？{" "}
-        <a href="/login" className="text-blue-400 hover:underline">
-          去登录
-        </a>
-      </p>
+    <div className="min-h-screen flex items-center justify-center bg-background text-foreground px-4">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardContent className="pt-6 space-y-4">
+          <h1 className="text-2xl font-semibold text-center">注册账号</h1>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="username">用户名</Label>
+              <Input
+                id="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="请输入用户名"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">密码</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="请输入密码"
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full">
+              注册
+            </Button>
+          </form>
+          <p className="text-center text-sm text-muted-foreground">
+            已经有账号?{" "}
+            <a href="/login" className="text-primary hover:underline">
+              去登录
+            </a>
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
