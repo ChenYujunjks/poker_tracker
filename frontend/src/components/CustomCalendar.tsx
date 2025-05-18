@@ -16,9 +16,9 @@ const DayPicker = dynamic(
 
 export default function CustomCalendar() {
   const [events, setEvents] = useState<Record<string, string[]>>({
-    "2025-04-05": ["Buy-in 200 / Cash-out 350"],
-    "2025-04-12": ["Session with Mike"],
-    "2025-04-27": ["Evening game"],
+    "2025-05-05": ["Buy-in 200 / Cash-out 350"],
+    "2025-05-12": ["Session with Mike"],
+    "2025-06-27": ["Evening game"],
     "2025-05-27": ["WSOP satellite"],
   });
 
