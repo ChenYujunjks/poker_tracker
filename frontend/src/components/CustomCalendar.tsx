@@ -1,13 +1,9 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import CustomDialog from "./dialog";
+import CalendarDialog from "./raw/CalendarDialog";
 
 const DayPicker = dynamic(
   () => import("react-day-picker").then((m) => m.DayPicker),
@@ -15,16 +11,31 @@ const DayPicker = dynamic(
 );
 
 export default function CustomCalendar() {
-  const [events, setEvents] = useState<Record<string, string[]>>({
-    "2025-05-05": ["Buy-in 200 / Cash-out 350"],
-    "2025-05-12": ["Session with Mike"],
-    "2025-06-27": ["Evening game"],
-    "2025-05-27": ["WSOP satellite"],
-  });
-
+  const [events, setEvents] = useState<Record<string, string[]>>({});
   const [activeDate, setActiveDate] = useState<Date | null>(null);
   const [inputValue, setInputValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  // 将 date 数组转换为 events 字典（每个日期一个空数组或初始备注）
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    fetch("http://localhost:8080/api/sessions", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("获取 session 失败");
+        return res.json();
+      })
+      .then((data: { id: number; date: string }[]) => {
+        const newEvents: Record<string, string[]> = {};
+        data.forEach((session) => {
+          const dateKey = key(new Date(session.date));
+          newEvents[dateKey] = []; // 或你可以加上初始描述，如 [`Session #${session.id}`]
+        });
+        setEvents(newEvents);
+      })
+      .catch((err) => alert(err.message));
+  }, []);
 
   const addEvent = useCallback(
     (text: string) => {
@@ -56,67 +67,19 @@ export default function CustomCalendar() {
         }}
       />
 
-      {/* Shadcn Dialog */}
-      <Dialog
+      {/* <CalendarDialog
+        activeDate={activeDate}
+        setActiveDate={setActiveDate}
+        events={events}
+        setEvents={setEvents}
+      />*/}
+
+      {/* Custom Dialog */}
+      <CustomDialog
         open={!!activeDate}
-        onOpenChange={(open) => !open && setActiveDate(null)}
-      >
-        <DialogContent className="sm:max-w-md bg-white text-black dark:bg-zinc-900 dark:text-white">
-          <DialogHeader>
-            <DialogTitle>
-              {activeDate?.toLocaleDateString()} Sessions
-            </DialogTitle>
-          </DialogHeader>
-
-          <ul className="space-y-2 mb-4 max-h-40 overflow-y-auto">
-            {events[key(activeDate ?? new Date())]?.length ? (
-              events[key(activeDate ?? new Date())].map((ev, i) => (
-                <li
-                  key={i}
-                  className="rounded bg-zinc-100 dark:bg-zinc-800 p-2"
-                >
-                  {ev}
-                </li>
-              ))
-            ) : (
-              <li className="text-sm text-zinc-500">No sessions yet.</li>
-            )}
-          </ul>
-
-          <div className="flex gap-2">
-            <input
-              ref={inputRef}
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && inputValue.trim()) {
-                  addEvent(inputValue.trim());
-                  setInputValue("");
-                  inputRef.current?.focus();
-                }
-              }}
-              placeholder="Add a note…"
-              className="flex-1 rounded border px-2 py-1 text-sm
-                        bg-transparent outline-none focus:ring-1
-                        dark:border-zinc-700"
-            />
-            <button
-              onClick={() => {
-                if (inputValue.trim()) {
-                  addEvent(inputValue.trim());
-                  setInputValue("");
-                  inputRef.current?.focus();
-                }
-              }}
-              className="rounded bg-blue-600 px-3 py-1 text-sm text-white
-                        disabled:opacity-40"
-              disabled={!inputValue.trim()}
-            >
-              Add
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        onClose={() => setActiveDate(null)}
+        date={activeDate}
+      />
     </>
   );
 }
