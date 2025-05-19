@@ -1,6 +1,6 @@
 "use client";
 
-import CustomCalendar from "@/components/calendar/CustomCalendar";
+import CustomCalendar from "@/components/CustomCalendar";
 import WithAuth from "@/components/WithAuth";
 
 function SessionPage() {
