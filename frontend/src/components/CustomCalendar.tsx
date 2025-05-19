@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
 import CustomDialog from "./dialog";
-import CalendarDialog from "./CalendarDialog";
+import CalendarDialog from "./raw/CalendarDialog";
 
 const DayPicker = dynamic(
   () => import("react-day-picker").then((m) => m.DayPicker),
@@ -11,16 +11,31 @@ const DayPicker = dynamic(
 );
 
 export default function CustomCalendar() {
-  const [events, setEvents] = useState<Record<string, string[]>>({
-    "2025-05-05": ["Buy-in 200 / Cash-out 350"],
-    "2025-05-12": ["Session with Mike"],
-    "2025-06-27": ["Evening game"],
-    "2025-05-27": ["WSOP satellite"],
-  });
-
+  const [events, setEvents] = useState<Record<string, string[]>>({});
   const [activeDate, setActiveDate] = useState<Date | null>(null);
   const [inputValue, setInputValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  // 将 date 数组转换为 events 字典（每个日期一个空数组或初始备注）
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    fetch("http://localhost:8080/api/sessions", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("获取 session 失败");
+        return res.json();
+      })
+      .then((data: { id: number; date: string }[]) => {
+        const newEvents: Record<string, string[]> = {};
+        data.forEach((session) => {
+          const dateKey = key(new Date(session.date));
+          newEvents[dateKey] = []; // 或你可以加上初始描述，如 [`Session #${session.id}`]
+        });
+        setEvents(newEvents);
+      })
+      .catch((err) => alert(err.message));
+  }, []);
 
   const addEvent = useCallback(
     (text: string) => {
