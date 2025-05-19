@@ -2,7 +2,8 @@
 
 import { useState, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
-import CalendarDialog from "./dialog/CalendarDialog";
+import CustomDialog from "./dialog";
+import CalendarDialog from "./CalendarDialog";
 
 const DayPicker = dynamic(
   () => import("react-day-picker").then((m) => m.DayPicker),
@@ -51,14 +52,18 @@ export default function CustomCalendar() {
         }}
       />
 
-      {/* Shadcn Dialog */}
-      <CalendarDialog
+      {/* <CalendarDialog
         activeDate={activeDate}
         setActiveDate={setActiveDate}
         events={events}
-        inputValue={inputValue}
-        setInputValue={setInputValue}
-        addEvent={addEvent}
+        setEvents={setEvents}
+      />*/}
+
+      {/* Custom Dialog */}
+      <CustomDialog
+        open={!!activeDate}
+        onClose={() => setActiveDate(null)}
+        date={activeDate}
       />
     </>
   );
