@@ -35,14 +35,16 @@ export default function CustomDialog({
   const [creating, setCreating] = useState(false);
 
   const handleCreateSession = async () => {
+    if (!date) return; // ✅ 检查 null
     const token = localStorage.getItem("token");
+    const formattedDate = date.toISOString().split("T")[0];
     const res = await fetch("http://localhost:8080/api/sessions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ date }), // 你后端格式可能是 date: "2025-05-20"
+      body: JSON.stringify({ date: formattedDate }),
     });
 
     if (res.ok) {

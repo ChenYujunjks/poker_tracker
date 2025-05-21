@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
 import CustomDialog from "../dialog";
 
@@ -69,7 +69,7 @@ export default function CustomCalendar() {
         open={!!activeDate}
         onClose={() => setActiveDate(null)}
         date={activeDate}
-        hasSession={activeDate ? !!events[key(activeDate)] : false}
+        hasSession={activeDate ? !!events[key(activeDate)] : false} // 检查是否存在该日期的事件
       />
     </>
   );
