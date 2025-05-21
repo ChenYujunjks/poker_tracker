@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import WithAuth from "@/components/WithAuth";
-import PlayerList from "@/components/PlayerList";
+import PlayerList from "@/components/player/PlayerList";
 
 function Players() {
   const router = useRouter();
@@ -18,7 +18,7 @@ function Players() {
           }}
           className="text-sm text-destructive hover:underline"
         >
-          退出登录
+          Log Out
         </button>
       </div>
     </div>

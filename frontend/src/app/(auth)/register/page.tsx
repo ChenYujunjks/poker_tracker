@@ -29,39 +29,41 @@ export default function Register() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background text-foreground px-4">
-      <Card className="w-full max-w-md shadow-lg">
+      <Card className="w-full max-w-xl shadow-lg">
         <CardContent className="pt-6 space-y-4">
-          <h1 className="text-2xl font-semibold text-center">注册账号</h1>
+          <h1 className="text-2xl font-semibold text-center">
+            注册账号 / Register
+          </h1>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">用户名</Label>
+              <Label htmlFor="username">用户名 / Username</Label>
               <Input
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="请输入用户名"
+                placeholder="请输入用户名 / Enter your username"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">密码</Label>
+              <Label htmlFor="password">密码 / Password</Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="请输入密码"
+                placeholder="请输入密码 / Enter your password"
                 required
               />
             </div>
             <Button type="submit" className="w-full">
-              注册
+              注册 / Register
             </Button>
           </form>
           <p className="text-center text-sm text-muted-foreground">
             已经有账号?{" "}
             <a href="/login" className="text-primary hover:underline">
-              去登录
+              Log In
             </a>
           </p>
         </CardContent>

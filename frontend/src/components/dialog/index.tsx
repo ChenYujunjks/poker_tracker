@@ -22,10 +22,41 @@ type Props = {
   open: boolean;
   onClose: () => void;
   date: Date | null;
+  hasSession: boolean;
+  onSessionCreated?: (date: Date) => void; // ✅ 新增这一行
 };
 
-export default function CustomDialog({ open, onClose, date }: Props) {
-  const [players, setPlayers] = useState<PlayerRecord[]>([]); // 后期可以替换为从后端加载的数据
+export default function CustomDialog({
+  open,
+  onClose,
+  date,
+  hasSession,
+  onSessionCreated,
+}: Props) {
+  const [players, setPlayers] = useState<PlayerRecord[]>([]);
+  const [creating, setCreating] = useState(false);
+
+  const handleCreateSession = async () => {
+    if (!date) return; // ✅ 检查 null
+    const token = localStorage.getItem("token");
+    const formattedDate = date.toISOString().split("T")[0];
+    const res = await fetch("http://localhost:8080/api/sessions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ date: formattedDate }),
+    });
+
+    if (res.ok) {
+      setCreating(false);
+      onSessionCreated?.(date); // ✅ 调用父组件传入的回调
+    } else {
+      const err = await res.json();
+      alert(err.error || "创建 session 失败");
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -34,7 +65,19 @@ export default function CustomDialog({ open, onClose, date }: Props) {
           <DialogTitle>{date?.toLocaleDateString()} 的游戏记录</DialogTitle>
         </DialogHeader>
 
-        <PlayerTable data={players} onChange={setPlayers} />
+        {!hasSession ? (
+          <div className="space-y-4">
+            <p className="text-sm">该日期暂无 Session，是否新建？</p>
+            <button
+              onClick={handleCreateSession}
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            >
+              创建 Session
+            </button>
+          </div>
+        ) : (
+          <PlayerTable data={players} onChange={setPlayers} />
+        )}
       </DialogContent>
     </Dialog>
   );
