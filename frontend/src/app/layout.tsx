@@ -14,7 +14,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="bg-gray-100 text-gray-900 dark:bg-zinc-900 dark:text-white transition-colors">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <div className="min-h-screen flex flex-col items-center p-6">
-            {/* 顶部导航栏 */}
+            {/* Top Navbar */}
             <header className="w-full max-w-4xl mb-6 flex justify-between items-center">
               <h1 className="text-2xl font-bold">Poker Tracker</h1>
               <div className="flex items-center gap-4">
@@ -40,7 +40,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <button
                   onClick={() => {
                     localStorage.removeItem("token"); // 清除 token
-                    router.push("/"); // 跳转到登录页
+                    router.push("/");
                   }}
                   className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 text-sm"
                 >
@@ -49,10 +49,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               </div>
             </header>
 
-            {/* 页面主体 */}
+            {/* Page Main */}
             <main className="w-full max-w-4xl flex-grow">{children}</main>
 
-            {/* 底部信息 */}
+            {/* Footer */}
             <footer className="w-full max-w-4xl mt-12 text-sm text-gray-500 dark:text-gray-400 text-center border-t pt-4">
               <p>
                 &copy; {new Date().getFullYear()} Bruce Chen. All rights
