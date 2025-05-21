@@ -64,7 +64,10 @@ func main() {
 		auth.DELETE("/sessions/:id", c.DeleteSession) // 删除 Session
 
 		// ---------- 未来的 GameRecord ----------
-		// auth.POST("/gamerecord", c.CreateGameRecord)
+		auth.POST("/gamerecords", c.CreateGameRecord)
+		auth.PUT("/gamerecords/:id", c.UpdateGameRecord)
+		auth.DELETE("/gamerecords/:id", c.DeleteGameRecord)
+		auth.GET("/gamerecords", c.GetGameRecordsBySession) // ?session_id=xxx
 	}
 
 	router.Run(":8080")
