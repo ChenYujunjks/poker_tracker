@@ -79,13 +79,11 @@ func CreateSession(c *gin.Context) {
 		return
 	}
 
-	// 创建 session 实例
 	session := model.Session{
 		Date:   sessionDate,
 		UserID: userID,
 	}
 
-	// 存入数据库
 	if err := db.DB.Create(&session).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "创建 Session 失败"})
 		return
