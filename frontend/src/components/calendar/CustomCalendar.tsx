@@ -2,8 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
-import CustomDialog from "./dialog";
-import CalendarDialog from "./raw/CalendarDialog";
+import CustomDialog from "../dialog";
 
 const DayPicker = dynamic(
   () => import("react-day-picker").then((m) => m.DayPicker),
@@ -13,8 +12,6 @@ const DayPicker = dynamic(
 export default function CustomCalendar() {
   const [events, setEvents] = useState<Record<string, string[]>>({});
   const [activeDate, setActiveDate] = useState<Date | null>(null);
-  const [inputValue, setInputValue] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
   // 将 date 数组转换为 events 字典（每个日期一个空数组或初始备注）
 
   useEffect(() => {
@@ -67,18 +64,12 @@ export default function CustomCalendar() {
         }}
       />
 
-      {/* <CalendarDialog
-        activeDate={activeDate}
-        setActiveDate={setActiveDate}
-        events={events}
-        setEvents={setEvents}
-      />*/}
-
       {/* Custom Dialog */}
       <CustomDialog
         open={!!activeDate}
         onClose={() => setActiveDate(null)}
         date={activeDate}
+        hasSession={activeDate ? !!events[key(activeDate)] : false}
       />
     </>
   );

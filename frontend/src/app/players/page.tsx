@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import WithAuth from "@/components/WithAuth";
-import PlayerList from "@/components/PlayerList";
+import PlayerList from "@/components/player/PlayerList";
 
 function Players() {
   const router = useRouter();
