@@ -23,6 +23,7 @@ type Props = {
   onClose: () => void;
   date: Date | null;
   hasSession: boolean;
+  onSessionCreated?: (date: Date) => void; // ✅ 新增这一行
 };
 
 export default function CustomDialog({
@@ -30,6 +31,7 @@ export default function CustomDialog({
   onClose,
   date,
   hasSession,
+  onSessionCreated,
 }: Props) {
   const [players, setPlayers] = useState<PlayerRecord[]>([]);
   const [creating, setCreating] = useState(false);
@@ -49,7 +51,7 @@ export default function CustomDialog({
 
     if (res.ok) {
       setCreating(false);
-      window.location.reload(); // 或者你可以调用父组件传入的刷新事件
+      onSessionCreated?.(date); // ✅ 调用父组件传入的回调
     } else {
       const err = await res.json();
       alert(err.error || "创建 session 失败");

@@ -13,6 +13,10 @@ export default function CustomCalendar() {
   const [events, setEvents] = useState<Record<string, string[]>>({});
   const [activeDate, setActiveDate] = useState<Date | null>(null);
   // 将 date 数组转换为 events 字典（每个日期一个空数组或初始备注）
+  const handleSessionCreated = (date: Date) => {
+    const k = key(date);
+    setEvents((prev) => ({ ...prev, [k]: [] })); // ✅ 添加该日期为空 Session
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -70,6 +74,7 @@ export default function CustomCalendar() {
         onClose={() => setActiveDate(null)}
         date={activeDate}
         hasSession={activeDate ? !!events[key(activeDate)] : false} // 检查是否存在该日期的事件
+        onSessionCreated={handleSessionCreated} // ✅ 传递回调
       />
     </>
   );
