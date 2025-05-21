@@ -18,7 +18,7 @@ function Players() {
           }}
           className="text-sm text-destructive hover:underline"
         >
-          退出登录
+          Log Out
         </button>
       </div>
     </div>
