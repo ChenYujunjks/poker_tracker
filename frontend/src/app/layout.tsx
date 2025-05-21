@@ -1,5 +1,5 @@
 "use client";
-
+import { useRouter } from "next/navigation";
 import { ReactNode } from "react";
 import Link from "next/link";
 import { ThemeProvider } from "next-themes";
@@ -8,6 +8,7 @@ import "./globals.css";
 import "react-day-picker/dist/style.css";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  const router = useRouter();
   return (
     <html lang="zh" suppressHydrationWarning>
       <body className="bg-gray-100 text-gray-900 dark:bg-zinc-900 dark:text-white transition-colors">
@@ -36,12 +37,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 >
                   Login
                 </Link>
-                <Link
-                  href="/api/logout"
+                <button
+                  onClick={() => {
+                    localStorage.removeItem("token"); // 清除 token
+                    router.push("/"); // 跳转到登录页
+                  }}
                   className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 text-sm"
                 >
                   Logout
-                </Link>
+                </button>
               </div>
             </header>
 
