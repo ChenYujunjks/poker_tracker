@@ -60,6 +60,7 @@ func CreateGameRecord(c *gin.Context) {
 		Paid:     record.Paid,
 	})
 }
+
 // GetGameRecordsBySession 返回某场 session 的所有记录
 func GetGameRecordsBySession(c *gin.Context) {
 	sessionID := c.Query("session_id")
