@@ -63,7 +63,7 @@ func main() {
 		auth.PUT("/sessions/:id", c.UpdateSession)    // 修改 Session 日期
 		auth.DELETE("/sessions/:id", c.DeleteSession) // 删除 Session
 
-		// ---------- 未来的 GameRecord ----------
+		// ----------  GameRecord ----------
 		auth.POST("/gamerecords", c.CreateGameRecord)
 		auth.PUT("/gamerecords/:id", c.UpdateGameRecord)
 		auth.DELETE("/gamerecords/:id", c.DeleteGameRecord)
