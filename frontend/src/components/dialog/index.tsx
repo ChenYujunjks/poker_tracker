@@ -9,10 +9,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import PlayerTable from "./PlayerTable";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export type PlayerRecord = {
-  name: string;
+  playerId: number; // 新增 playerId
+  name: string; // 从已知玩家列表中显示
   buyIn: number;
   cashOut: number;
   paid: boolean;
@@ -23,7 +24,7 @@ type Props = {
   onClose: () => void;
   date: Date | null;
   hasSession: boolean;
-  onSessionCreated?: (date: Date) => void; // ✅ 新增这一行
+  onSessionCreated?: (date: Date) => void;
 };
 
 export default function CustomDialog({
@@ -34,8 +35,22 @@ export default function CustomDialog({
   onSessionCreated,
 }: Props) {
   const [players, setPlayers] = useState<PlayerRecord[]>([]);
+  const [allPlayers, setAllPlayers] = useState<{ id: number; name: string }[]>(
+    []
+  );
   const [creating, setCreating] = useState(false);
+  const fetchPlayers = async () => {
+    const token = localStorage.getItem("token");
+    const res = await fetch("http://localhost:8080/api/players", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    setAllPlayers(data); // 例如 [{id: 1, name: 'Yitan'}, ...]
+  };
 
+  useEffect(() => {
+    fetchPlayers();
+  }, []);
   const handleCreateSession = async () => {
     if (!date) return; // ✅ 检查 null
     const token = localStorage.getItem("token");

@@ -3,8 +3,9 @@ import { useState } from "react";
 import EditableCell from "./EditableCell";
 import AddRowPlaceholder from "./AddRowPlaceholder";
 
-type PlayerRecord = {
-  name: string;
+export type PlayerRecord = {
+  playerId: number; // 新增 playerId
+  name: string; // 从已知玩家列表中显示
   buyIn: number;
   cashOut: number;
   paid: boolean;
@@ -13,6 +14,8 @@ type PlayerRecord = {
 type Props = {
   data: PlayerRecord[];
   onChange: (updated: PlayerRecord[]) => void;
+  playerOptions: { id: number; name: string }[]; // 新增字段：所有可选玩家
+  sessionId: number; // 新增字段：当前日期的 sessionId（你需传入）
 };
 
 export default function PlayerTable({ data, onChange }: Props) {
@@ -30,17 +33,44 @@ export default function PlayerTable({ data, onChange }: Props) {
     onChange(updated);
   };
 
-  const handleAddNew = () => {
-    const newPlayer: PlayerRecord = {
-      name: "",
-      buyIn: 0,
-      cashOut: 0,
+  const handleAddNew = async () => {
+    const playerId = prompt("请输入玩家 ID"); // 简化版，建议用 Select UI
+    if (!playerId) return;
+
+    const token = localStorage.getItem("token");
+
+    const newRecord = {
+      session_id: sessionId,
+      player_id: Number(playerId),
+      buy_in: 0,
+      cash_out: 0,
       paid: false,
     };
-    onChange([...data, newPlayer]);
-    setEditingIndex(data.length); // 开始编辑新行
-  };
 
+    const res = await fetch("http://localhost:8080/api/game-records", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(newRecord),
+    });
+
+    if (res.ok) {
+      const created = await res.json();
+      const matched = playerOptions.find((p) => p.id === created.player_id);
+      const newPlayer: PlayerRecord = {
+        playerId: created.player_id,
+        name: matched?.name || "未知",
+        buyIn: created.buy_in ?? 0,
+        cashOut: created.cash_out ?? 0,
+        paid: created.paid ?? false,
+      };
+      onChange([...data, newPlayer]);
+    } else {
+      alert("创建游戏记录失败");
+    }
+  };
   return (
     <table className="w-full border-collapse text-base">
       <thead>
