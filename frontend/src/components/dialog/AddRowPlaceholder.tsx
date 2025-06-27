@@ -1,4 +1,4 @@
-// calendar-dialog/AddRowPlaceholder.tsx
+// dialog/AddRowPlaceholder.tsx
 type Props = {
   onClick: () => void;
 };

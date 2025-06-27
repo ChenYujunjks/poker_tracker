@@ -1,4 +1,4 @@
-// calendar-dialog/PlayerTable.tsx
+//dialog/PlayerTable.tsx
 import { useState } from "react";
 import EditableCell from "./EditableCell";
 import AddRowPlaceholder from "./AddRowPlaceholder";
