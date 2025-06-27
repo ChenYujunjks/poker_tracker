@@ -3,13 +3,7 @@ import { useState } from "react";
 import EditableCell from "./EditableCell";
 import AddRowPlaceholder from "./AddRowPlaceholder";
 
-export type PlayerRecord = {
-  playerId: number; // 新增 playerId
-  name: string; // 从已知玩家列表中显示
-  buyIn: number;
-  cashOut: number;
-  paid: boolean;
-};
+import type { PlayerRecord } from "@/lib/types";
 
 type Props = {
   data: PlayerRecord[];
@@ -18,7 +12,12 @@ type Props = {
   sessionId: number; // 新增字段：当前日期的 sessionId（你需传入）
 };
 
-export default function PlayerTable({ data, onChange }: Props) {
+export default function PlayerTable({
+  data,
+  onChange,
+  playerOptions,
+  sessionId,
+}: Props) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   type PlayerRecordField = string | number | boolean;

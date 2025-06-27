@@ -64,10 +64,10 @@ func main() {
 		auth.DELETE("/sessions/:id", c.DeleteSession) // 删除 Session
 
 		// ----------  GameRecord ----------
-		auth.POST("/gamerecords", c.CreateGameRecord)
-		auth.PUT("/gamerecords/:id", c.UpdateGameRecord)
-		auth.DELETE("/gamerecords/:id", c.DeleteGameRecord)
-		auth.GET("/gamerecords", c.GetGameRecordsBySession) // ?session_id=xxx
+		auth.POST("/game-records", c.CreateGameRecord)
+		auth.PUT("/game-records/:id", c.UpdateGameRecord)
+		auth.DELETE("/game-records/:id", c.DeleteGameRecord)
+		auth.GET("/game-records", c.GetGameRecordsBySession) // ?session_id=xxx
 	}
 
 	router.Run(":8080")
