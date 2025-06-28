@@ -105,6 +105,7 @@ export default function PlayerTable({
               }}
               onEdit={() => {}}
             />
+
             <EditableCell
               value={newRecord.buyIn.toString()}
               isEditing={true}

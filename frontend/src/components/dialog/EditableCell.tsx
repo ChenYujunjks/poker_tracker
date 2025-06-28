@@ -1,11 +1,4 @@
 import { useState, useEffect } from "react";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
 
 type Props = {
   value: string;
@@ -13,7 +6,7 @@ type Props = {
   onChange: (val: string) => void;
   onEdit: () => void;
   mode?: "text" | "select";
-  selectOptions?: { label: string; value: string }[]; // 仅 Select 模式使用
+  selectOptions?: { label: string; value: string }[];
 };
 
 export default function EditableCell({
@@ -39,31 +32,30 @@ export default function EditableCell({
     >
       {isEditing ? (
         mode === "select" ? (
-          <Select
-            onValueChange={(val) => {
-              setLocalValue(val);
-              onChange(val);
-            }}
+          <select
             value={localValue}
+            onChange={(e) => {
+              const selected = e.target.value;
+              setLocalValue(selected);
+              onChange(selected);
+            }}
+            autoFocus
+            className="w-full rounded border px-2 py-1 bg-white dark:bg-zinc-800"
           >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="选择玩家" />
-            </SelectTrigger>
-            <SelectContent>
-              {selectOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <option value="">选择玩家</option>
+            {selectOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
         ) : (
           <input
             value={localValue}
             autoFocus
             onBlur={() => onChange(localValue)}
             onChange={(e) => setLocalValue(e.target.value)}
-            className="w-full rounded-md border border-zinc-300 px-3 py-1.5 text-base bg-white dark:bg-zinc-800"
+            className="w-full rounded border px-2 py-1 bg-white dark:bg-zinc-800"
           />
         )
       ) : (
