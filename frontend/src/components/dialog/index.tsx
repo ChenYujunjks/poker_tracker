@@ -1,5 +1,4 @@
-// components/calendar-dialog/index.tsx
-
+// components/dialog/index.tsx
 "use client";
 
 import {
@@ -9,21 +8,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import PlayerTable from "./PlayerTable";
-import { useState } from "react";
-
-export type PlayerRecord = {
-  name: string;
-  buyIn: number;
-  cashOut: number;
-  paid: boolean;
-};
+import { useAllPlayers } from "@/hooks/useAllPlayers";
+import { useGameRecords } from "@/hooks/useGameRecords";
+import { useCreateSession } from "@/hooks/useCreateSession";
 
 type Props = {
   open: boolean;
   onClose: () => void;
   date: Date | null;
   hasSession: boolean;
-  onSessionCreated?: (date: Date) => void; // ✅ 新增这一行
+  sessionId: number | null;
+  onSessionCreated?: (sessionId: number, date: Date) => void;
 };
 
 export default function CustomDialog({
@@ -31,33 +26,26 @@ export default function CustomDialog({
   onClose,
   date,
   hasSession,
+  sessionId,
   onSessionCreated,
 }: Props) {
-  const [players, setPlayers] = useState<PlayerRecord[]>([]);
-  const [creating, setCreating] = useState(false);
-
+  const { allPlayers, loading: playersLoading } = useAllPlayers();
+  const {
+    records,
+    setRecords,
+    loading: recordsLoading,
+  } = useGameRecords(sessionId, allPlayers);
+  const { createSession } = useCreateSession();
+  // 创建新 session 的操作
   const handleCreateSession = async () => {
-    if (!date) return; // ✅ 检查 null
-    const token = localStorage.getItem("token");
-    const formattedDate = date.toISOString().split("T")[0];
-    const res = await fetch("http://localhost:8080/api/sessions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ date: formattedDate }),
-    });
-
-    if (res.ok) {
-      setCreating(false);
-      onSessionCreated?.(date); // ✅ 调用父组件传入的回调
-    } else {
-      const err = await res.json();
-      alert(err.error || "创建 session 失败");
+    if (!date) return;
+    try {
+      const created = await createSession(date);
+      onSessionCreated?.(created.id, date); // 通知父组件刷新状态
+    } catch (err: any) {
+      alert(err.message || "创建 session 失败");
     }
   };
-
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="sm:max-w-3xl p-6 bg-white text-black dark:bg-zinc-900 dark:text-white">
@@ -65,7 +53,7 @@ export default function CustomDialog({
           <DialogTitle>{date?.toLocaleDateString()} 的游戏记录</DialogTitle>
         </DialogHeader>
 
-        {!hasSession ? (
+        {!hasSession || !sessionId ? (
           <div className="space-y-4">
             <p className="text-sm">该日期暂无 Session，是否新建？</p>
             <button
@@ -76,7 +64,12 @@ export default function CustomDialog({
             </button>
           </div>
         ) : (
-          <PlayerTable data={players} onChange={setPlayers} />
+          <PlayerTable
+            data={records}
+            onChange={setRecords}
+            playerOptions={allPlayers}
+            sessionId={sessionId}
+          />
         )}
       </DialogContent>
     </Dialog>

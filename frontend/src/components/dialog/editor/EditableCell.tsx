@@ -1,5 +1,4 @@
-// calendar-dialog/EditableCell.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type Props = {
   value: string;
@@ -15,6 +14,10 @@ export default function EditableCell({
   onEdit,
 }: Props) {
   const [localValue, setLocalValue] = useState(value);
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
 
   return (
     <td

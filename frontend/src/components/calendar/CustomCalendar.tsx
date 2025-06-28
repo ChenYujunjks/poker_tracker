@@ -12,10 +12,13 @@ const DayPicker = dynamic(
 export default function CustomCalendar() {
   const [events, setEvents] = useState<Record<string, string[]>>({});
   const [activeDate, setActiveDate] = useState<Date | null>(null);
+  const [sessionIdMap, setSessionIdMap] = useState<Record<string, number>>({});
+
   // 将 date 数组转换为 events 字典（每个日期一个空数组或初始备注）
-  const handleSessionCreated = (date: Date) => {
+  const handleSessionCreated = (sessionId: number, date: Date) => {
     const k = key(date);
-    setEvents((prev) => ({ ...prev, [k]: [] })); // ✅ 添加该日期为空 Session
+    setEvents((prev) => ({ ...prev, [k]: [] }));
+    setSessionIdMap((prev) => ({ ...prev, [k]: sessionId }));
   };
 
   useEffect(() => {
@@ -29,16 +32,20 @@ export default function CustomCalendar() {
       })
       .then((data: { id: number; date: string }[]) => {
         const newEvents: Record<string, string[]> = {};
+        const newSessionMap: Record<string, number> = {};
         data.forEach((session) => {
           const dateKey = key(new Date(session.date));
           newEvents[dateKey] = []; // 或你可以加上初始描述，如 [`Session #${session.id}`]
+          newSessionMap[dateKey] = session.id;
         });
         setEvents(newEvents);
+        setSessionIdMap(newSessionMap);
       })
       .catch((err) => alert(err.message));
   }, []);
 
-  const addEvent = useCallback(
+  /*
+    const addEvent = useCallback(
     (text: string) => {
       if (!activeDate) return;
       const k = key(activeDate);
@@ -46,6 +53,7 @@ export default function CustomCalendar() {
     },
     [activeDate]
   );
+  */
 
   const modifiers = {
     hasEvent: (day: Date) => !!events[key(day)],
@@ -74,7 +82,8 @@ export default function CustomCalendar() {
         onClose={() => setActiveDate(null)}
         date={activeDate}
         hasSession={activeDate ? !!events[key(activeDate)] : false} // 检查是否存在该日期的事件
-        onSessionCreated={handleSessionCreated} // ✅ 传递回调
+        sessionId={activeDate ? sessionIdMap[key(activeDate)] ?? null : null}
+        onSessionCreated={handleSessionCreated}
       />
     </>
   );

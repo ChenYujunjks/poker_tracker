@@ -1,22 +1,32 @@
-// calendar-dialog/PlayerTable.tsx
+// components/dialog/PlayerTable.tsx
 import { useState } from "react";
-import EditableCell from "./EditableCell";
-import AddRowPlaceholder from "./AddRowPlaceholder";
-
-type PlayerRecord = {
-  name: string;
-  buyIn: number;
-  cashOut: number;
-  paid: boolean;
-};
+import EditableCell from "./editor/EditableCell";
+import { SelectEditor } from "./editor/EditableSelect";
+import AddRowPlaceholder from "./editor/AddRowPlaceholder";
+import type { PlayerRecord } from "@/lib/types";
 
 type Props = {
   data: PlayerRecord[];
   onChange: (updated: PlayerRecord[]) => void;
+  playerOptions: { id: number; name: string }[];
+  sessionId: number;
 };
 
-export default function PlayerTable({ data, onChange }: Props) {
+export default function PlayerTable({
+  data,
+  onChange,
+  playerOptions,
+  sessionId,
+}: Props) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [newRecord, setNewRecord] = useState<PlayerRecord>({
+    playerId: -1,
+    name: "",
+    buyIn: 0,
+    cashOut: 0,
+    paid: false,
+  });
 
   type PlayerRecordField = string | number | boolean;
 
@@ -28,17 +38,6 @@ export default function PlayerTable({ data, onChange }: Props) {
     const updated = [...data];
     updated[index] = { ...updated[index], [field]: value };
     onChange(updated);
-  };
-
-  const handleAddNew = () => {
-    const newPlayer: PlayerRecord = {
-      name: "",
-      buyIn: 0,
-      cashOut: 0,
-      paid: false,
-    };
-    onChange([...data, newPlayer]);
-    setEditingIndex(data.length); // 开始编辑新行
   };
 
   return (
@@ -84,7 +83,116 @@ export default function PlayerTable({ data, onChange }: Props) {
             </td>
           </tr>
         ))}
-        <AddRowPlaceholder onClick={handleAddNew} />
+
+        {adding ? (
+          <tr className="bg-zinc-50 dark:bg-zinc-800">
+            {/* select */}
+            <td className="px-2 py-1">
+              <SelectEditor
+                value={newRecord.playerId.toString()}
+                options={playerOptions.map((p) => ({
+                  label: p.name,
+                  value: p.id.toString(),
+                }))}
+                onChange={(val) => {
+                  const matched = playerOptions.find(
+                    (p) => p.id.toString() === val
+                  );
+                  setNewRecord((prev) => ({
+                    ...prev,
+                    playerId: Number(val),
+                    name: matched?.name || "",
+                  }));
+                }}
+              />
+            </td>
+
+            {/* buy-in */}
+            <EditableCell
+              value={newRecord.buyIn.toString()}
+              isEditing={true}
+              onChange={(val) =>
+                setNewRecord((prev) => ({ ...prev, buyIn: Number(val) }))
+              }
+              onEdit={() => {}}
+            />
+
+            {/* cash-out */}
+            <EditableCell
+              value={newRecord.cashOut.toString()}
+              isEditing={true}
+              onChange={(val) =>
+                setNewRecord((prev) => ({ ...prev, cashOut: Number(val) }))
+              }
+              onEdit={() => {}}
+            />
+
+            {/* paid checkbox */}
+            <td className="px-2 py-1">
+              <input
+                type="checkbox"
+                checked={newRecord.paid}
+                onChange={(e) =>
+                  setNewRecord((prev) => ({
+                    ...prev,
+                    paid: e.target.checked,
+                  }))
+                }
+              />
+            </td>
+
+            {/* action buttons */}
+            <td className="px-2 py-1">
+              <button
+                className="px-2 py-1 bg-green-600 text-white rounded mr-2"
+                onClick={async () => {
+                  const token = localStorage.getItem("token");
+                  const res = await fetch(
+                    "http://localhost:8080/api/game-records",
+                    {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                      },
+                      body: JSON.stringify({
+                        session_id: sessionId,
+                        player_id: newRecord.playerId,
+                        buy_in: newRecord.buyIn,
+                        cash_out: newRecord.cashOut,
+                        paid: newRecord.paid,
+                      }),
+                    }
+                  );
+
+                  if (res.ok) {
+                    onChange([...data, newRecord]);
+                    setAdding(false);
+                    setNewRecord({
+                      playerId: -1,
+                      name: "",
+                      buyIn: 0,
+                      cashOut: 0,
+                      paid: false,
+                    });
+                  } else {
+                    alert("添加失败");
+                  }
+                }}
+              >
+                添加
+              </button>
+              <button
+                className="text-red-500 text-sm"
+                onClick={() => setAdding(false)}
+              >
+                取消
+              </button>
+            </td>
+          </tr>
+        ) : (
+          <AddRowPlaceholder onClick={() => setAdding(true)} />
+        )}
       </tbody>
     </table>
   );
