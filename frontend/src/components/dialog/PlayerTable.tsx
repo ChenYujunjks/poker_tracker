@@ -1,15 +1,14 @@
-//dialog/PlayerTable.tsx
+// components/dialog/PlayerTable.tsx
 import { useState } from "react";
 import EditableCell from "./EditableCell";
 import AddRowPlaceholder from "./AddRowPlaceholder";
-
 import type { PlayerRecord } from "@/lib/types";
 
 type Props = {
   data: PlayerRecord[];
   onChange: (updated: PlayerRecord[]) => void;
-  playerOptions: { id: number; name: string }[]; // 新增字段：所有可选玩家
-  sessionId: number; // 新增字段：当前日期的 sessionId（你需传入）
+  playerOptions: { id: number; name: string }[];
+  sessionId: number;
 };
 
 export default function PlayerTable({
@@ -19,6 +18,14 @@ export default function PlayerTable({
   sessionId,
 }: Props) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [newRecord, setNewRecord] = useState<PlayerRecord>({
+    playerId: -1,
+    name: "",
+    buyIn: 0,
+    cashOut: 0,
+    paid: false,
+  });
 
   type PlayerRecordField = string | number | boolean;
 
@@ -32,44 +39,6 @@ export default function PlayerTable({
     onChange(updated);
   };
 
-  const handleAddNew = async () => {
-    const playerId = prompt("请输入玩家 ID"); // 简化版，建议用 Select UI
-    if (!playerId) return;
-
-    const token = localStorage.getItem("token");
-
-    const newRecord = {
-      session_id: sessionId,
-      player_id: Number(playerId),
-      buy_in: 0,
-      cash_out: 0,
-      paid: false,
-    };
-
-    const res = await fetch("http://localhost:8080/api/game-records", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(newRecord),
-    });
-
-    if (res.ok) {
-      const created = await res.json();
-      const matched = playerOptions.find((p) => p.id === created.player_id);
-      const newPlayer: PlayerRecord = {
-        playerId: created.player_id,
-        name: matched?.name || "未知",
-        buyIn: created.buy_in ?? 0,
-        cashOut: created.cash_out ?? 0,
-        paid: created.paid ?? false,
-      };
-      onChange([...data, newPlayer]);
-    } else {
-      alert("创建游戏记录失败");
-    }
-  };
   return (
     <table className="w-full border-collapse text-base">
       <thead>
@@ -113,7 +82,108 @@ export default function PlayerTable({
             </td>
           </tr>
         ))}
-        <AddRowPlaceholder onClick={handleAddNew} />
+
+        {adding ? (
+          <tr className="bg-zinc-50 dark:bg-zinc-800">
+            <EditableCell
+              value={newRecord.name}
+              isEditing={true}
+              mode="select"
+              selectOptions={playerOptions.map((p) => ({
+                label: p.name,
+                value: p.id.toString(),
+              }))}
+              onChange={(val) => {
+                const matched = playerOptions.find(
+                  (p) => p.id.toString() === val
+                );
+                setNewRecord((prev) => ({
+                  ...prev,
+                  playerId: Number(val),
+                  name: matched?.name || "",
+                }));
+              }}
+              onEdit={() => {}}
+            />
+            <EditableCell
+              value={newRecord.buyIn.toString()}
+              isEditing={true}
+              onChange={(val) =>
+                setNewRecord((prev) => ({ ...prev, buyIn: Number(val) }))
+              }
+              onEdit={() => {}}
+            />
+            <EditableCell
+              value={newRecord.cashOut.toString()}
+              isEditing={true}
+              onChange={(val) =>
+                setNewRecord((prev) => ({ ...prev, cashOut: Number(val) }))
+              }
+              onEdit={() => {}}
+            />
+            <td className="px-2 py-1">
+              <input
+                type="checkbox"
+                checked={newRecord.paid}
+                onChange={(e) =>
+                  setNewRecord((prev) => ({
+                    ...prev,
+                    paid: e.target.checked,
+                  }))
+                }
+              />
+            </td>
+            <td className="px-2 py-1">
+              <button
+                className="px-2 py-1 bg-green-600 text-white rounded mr-2"
+                onClick={async () => {
+                  const token = localStorage.getItem("token");
+                  const res = await fetch(
+                    "http://localhost:8080/api/game-records",
+                    {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                      },
+                      body: JSON.stringify({
+                        session_id: sessionId,
+                        player_id: newRecord.playerId,
+                        buy_in: newRecord.buyIn,
+                        cash_out: newRecord.cashOut,
+                        paid: newRecord.paid,
+                      }),
+                    }
+                  );
+
+                  if (res.ok) {
+                    onChange([...data, newRecord]);
+                    setAdding(false);
+                    setNewRecord({
+                      playerId: -1,
+                      name: "",
+                      buyIn: 0,
+                      cashOut: 0,
+                      paid: false,
+                    });
+                  } else {
+                    alert("添加失败");
+                  }
+                }}
+              >
+                添加
+              </button>
+              <button
+                className="text-red-500 text-sm"
+                onClick={() => setAdding(false)}
+              >
+                取消
+              </button>
+            </td>
+          </tr>
+        ) : (
+          <AddRowPlaceholder onClick={() => setAdding(true)} />
+        )}
       </tbody>
     </table>
   );
