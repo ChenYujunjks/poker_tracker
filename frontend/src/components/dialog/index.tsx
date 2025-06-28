@@ -58,7 +58,8 @@ export default function CustomDialog({
         }
       );
       const data = await res.json();
-      const enriched = data.map((r: any) => {
+      const safeData = Array.isArray(data) ? data : []; // ✅ 最稳妥
+      const enriched = safeData.map((r: any) => {
         const matched = allPlayers.find((p) => p.id === r.player_id);
         return {
           playerId: r.player_id,
