@@ -1,7 +1,8 @@
 // components/dialog/PlayerTable.tsx
 import { useState } from "react";
-import EditableCell from "./EditableCell";
-import AddRowPlaceholder from "./AddRowPlaceholder";
+import EditableCell from "./editor/EditableCell";
+import { SelectEditor } from "./editor/EditableSelect";
+import AddRowPlaceholder from "./editor/AddRowPlaceholder";
 import type { PlayerRecord } from "@/lib/types";
 
 type Props = {
@@ -85,27 +86,28 @@ export default function PlayerTable({
 
         {adding ? (
           <tr className="bg-zinc-50 dark:bg-zinc-800">
-            <EditableCell
-              value={newRecord.name}
-              isEditing={true}
-              mode="select"
-              selectOptions={playerOptions.map((p) => ({
-                label: p.name,
-                value: p.id.toString(),
-              }))}
-              onChange={(val) => {
-                const matched = playerOptions.find(
-                  (p) => p.id.toString() === val
-                );
-                setNewRecord((prev) => ({
-                  ...prev,
-                  playerId: Number(val),
-                  name: matched?.name || "",
-                }));
-              }}
-              onEdit={() => {}}
-            />
+            {/* select */}
+            <td className="px-2 py-1">
+              <SelectEditor
+                value={newRecord.playerId.toString()}
+                options={playerOptions.map((p) => ({
+                  label: p.name,
+                  value: p.id.toString(),
+                }))}
+                onChange={(val) => {
+                  const matched = playerOptions.find(
+                    (p) => p.id.toString() === val
+                  );
+                  setNewRecord((prev) => ({
+                    ...prev,
+                    playerId: Number(val),
+                    name: matched?.name || "",
+                  }));
+                }}
+              />
+            </td>
 
+            {/* buy-in */}
             <EditableCell
               value={newRecord.buyIn.toString()}
               isEditing={true}
@@ -114,6 +116,8 @@ export default function PlayerTable({
               }
               onEdit={() => {}}
             />
+
+            {/* cash-out */}
             <EditableCell
               value={newRecord.cashOut.toString()}
               isEditing={true}
@@ -122,6 +126,8 @@ export default function PlayerTable({
               }
               onEdit={() => {}}
             />
+
+            {/* paid checkbox */}
             <td className="px-2 py-1">
               <input
                 type="checkbox"
@@ -134,6 +140,8 @@ export default function PlayerTable({
                 }
               />
             </td>
+
+            {/* action buttons */}
             <td className="px-2 py-1">
               <button
                 className="px-2 py-1 bg-green-600 text-white rounded mr-2"
