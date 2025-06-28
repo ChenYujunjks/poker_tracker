@@ -8,9 +8,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import PlayerTable from "./PlayerTable";
-import { useState, useEffect } from "react";
-
-import type { PlayerRecord } from "@/lib/types";
+import { useAllPlayers } from "@/hooks/useAllPlayers";
+import { useGameRecords } from "@/hooks/useGameRecords";
+import { useCreateSession } from "@/hooks/useCreateSession";
 
 type Props = {
   open: boolean;
@@ -29,73 +29,23 @@ export default function CustomDialog({
   sessionId,
   onSessionCreated,
 }: Props) {
-  const [players, setPlayers] = useState<PlayerRecord[]>([]);
-  const [allPlayers, setAllPlayers] = useState<{ id: number; name: string }[]>(
-    []
-  );
-  // 获取所有可选玩家
-  useEffect(() => {
-    const fetchPlayers = async () => {
-      const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:8080/api/players", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      setAllPlayers(data);
-    };
-    fetchPlayers();
-  }, []);
-
-  // 获取当前 session 的游戏记录
-  useEffect(() => {
-    const fetchRecords = async () => {
-      if (!sessionId) return;
-      const token = localStorage.getItem("token");
-      const res = await fetch(
-        `http://localhost:8080/api/game-records?session_id=${sessionId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      const data = await res.json();
-      const safeData = Array.isArray(data) ? data : []; // ✅ 最稳妥
-      const enriched = safeData.map((r: any) => {
-        const matched = allPlayers.find((p) => p.id === r.player_id);
-        return {
-          playerId: r.player_id,
-          name: matched?.name || "未知",
-          buyIn: r.buy_in ?? 0,
-          cashOut: r.cash_out ?? 0,
-          paid: r.paid ?? false,
-        };
-      });
-      setPlayers(enriched);
-    };
-    fetchRecords();
-  }, [sessionId, allPlayers]);
+  const { allPlayers, loading: playersLoading } = useAllPlayers();
+  const {
+    records,
+    setRecords,
+    loading: recordsLoading,
+  } = useGameRecords(sessionId, allPlayers);
+  const { createSession } = useCreateSession();
   // 创建新 session 的操作
   const handleCreateSession = async () => {
     if (!date) return;
-    const token = localStorage.getItem("token");
-    const formattedDate = date.toISOString().split("T")[0];
-    const res = await fetch("http://localhost:8080/api/sessions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ date: formattedDate }),
-    });
-
-    if (res.ok) {
-      const created = await res.json();
-      onSessionCreated?.(created.id, date); // ✅ 通知父组件
-    } else {
-      const err = await res.json();
-      alert(err.error || "创建 session 失败");
+    try {
+      const created = await createSession(date);
+      onSessionCreated?.(created.id, date); // 通知父组件刷新状态
+    } catch (err: any) {
+      alert(err.message || "创建 session 失败");
     }
   };
-
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="sm:max-w-3xl p-6 bg-white text-black dark:bg-zinc-900 dark:text-white">
@@ -115,8 +65,8 @@ export default function CustomDialog({
           </div>
         ) : (
           <PlayerTable
-            data={players}
-            onChange={setPlayers}
+            data={records}
+            onChange={setRecords}
             playerOptions={allPlayers}
             sessionId={sessionId}
           />
