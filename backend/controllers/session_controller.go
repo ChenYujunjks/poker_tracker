@@ -66,6 +66,14 @@ func CreateSession(c *gin.Context) {
 		return
 	}
 
+	// ✅ 添加日期不能超过今天的校验
+	today := time.Now().Truncate(24 * time.Hour)
+	if sessionDate.After(today) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "不能创建未来日期的 session"})
+		return
+	}
+
+	// 获取当前用户 ID
 	userIDInterface, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "用户未登录"})
