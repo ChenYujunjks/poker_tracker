@@ -27,7 +27,7 @@ export default function DeleteSessionButton({ sessionId, onDeleted }: Props) {
         }
       }}
       trigger={
-        <Button variant="destructive" size="sm">
+        <Button variant="destructive" size="sm" className="hover:bg-red-700">
           删除 Session
         </Button>
       }

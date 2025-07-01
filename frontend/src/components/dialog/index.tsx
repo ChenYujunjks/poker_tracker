@@ -1,5 +1,4 @@
 "use client";
-
 import {
   Dialog,
   DialogContent,
@@ -9,6 +8,7 @@ import {
 import { toast } from "sonner";
 import PlayerTable from "./PlayerTable";
 import CreateSessionPrompt from "./sessions/CreateSession";
+import DeleteSessionButton from "./sessions/DeleteSessionButton";
 
 import { useAllPlayers } from "@/hooks/useAllPlayers";
 import { useGameRecords } from "@/hooks/useGameRecords";
@@ -68,12 +68,17 @@ export default function CustomDialog({
             <CreateSessionPrompt date={date} onCreate={handleCreateSession} />
           ) : null
         ) : (
-          <PlayerTable
-            data={records}
-            onChange={setRecords}
-            playerOptions={allPlayers}
-            sessionId={sessionId}
-          />
+          <>
+            <PlayerTable
+              data={records}
+              onChange={setRecords}
+              playerOptions={allPlayers}
+              sessionId={sessionId}
+            />
+            <div className="mt-6 flex justify-end">
+              <DeleteSessionButton sessionId={sessionId} onDeleted={onClose} />
+            </div>
+          </>
         )}
       </DialogContent>
     </Dialog>
