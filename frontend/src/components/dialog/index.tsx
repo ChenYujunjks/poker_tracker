@@ -29,7 +29,7 @@ export default function CustomDialog({
   sessionId,
   onSessionCreated,
 }: Props) {
-  const { allPlayers, loading: playersLoading } = useAllPlayers();
+  const { allPlayers, loading } = useAllPlayers();
   const {
     records,
     setRecords,

@@ -1,55 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useAllPlayers } from "@/hooks/useAllPlayers";
 
 export default function PlayerList() {
-  const [players, setPlayers] = useState<any[]>([]);
+  const { allPlayers, loading, addPlayer } = useAllPlayers();
   const [name, setName] = useState("");
 
-  // 获取玩家列表
-  const fetchPlayers = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:8080/api/players", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("获取玩家失败");
-      const data = await res.json();
-      setPlayers(data);
-    } catch (err: any) {
-      alert(err.message || "请求失败");
-    }
-  };
-
-  useEffect(() => {
-    fetchPlayers();
-  }, []);
-
-  // 添加新玩家
   const handleAddPlayer = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:8080/api/players", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ name }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        await fetchPlayers(); // 刷新列表
-        setName("");
-      } else {
-        alert(data.error || "添加玩家失败");
-      }
+      await addPlayer(name);
+      setName(""); // 清空输入框
     } catch (err: any) {
-      alert(err.message || "请求失败");
+      alert(err.message || "添加失败");
     }
   };
 
@@ -58,9 +25,11 @@ export default function PlayerList() {
       <CardContent className="py-6 space-y-6">
         <h1 className="text-2xl font-bold text-center">玩家列表</h1>
 
-        {players.length > 0 ? (
+        {loading ? (
+          <p className="text-sm text-muted-foreground">加载中...</p>
+        ) : allPlayers.length > 0 ? (
           <ul className="space-y-2">
-            {players.map((player) => (
+            {allPlayers.map((player) => (
               <li
                 key={player.id}
                 className="bg-muted px-4 py-2 rounded-md text-foreground hover:bg-green-100 dark:hover:bg-green-800 transition-colors duration-200"
