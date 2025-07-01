@@ -4,10 +4,12 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import ConfirmDialog from "@/components/ConfirmDialog";
+
 import { useAllPlayers } from "@/hooks/useAllPlayers";
 
 export default function PlayerList() {
-  const { allPlayers, loading, addPlayer } = useAllPlayers();
+  const { allPlayers, loading, addPlayer, deletePlayer } = useAllPlayers();
   const [name, setName] = useState("");
 
   const handleAddPlayer = async (e: React.FormEvent) => {
@@ -32,9 +34,29 @@ export default function PlayerList() {
             {allPlayers.map((player) => (
               <li
                 key={player.id}
-                className="bg-muted px-4 py-2 rounded-md text-foreground hover:bg-green-100 dark:hover:bg-green-800 transition-colors duration-200"
+                className="group flex items-center justify-between bg-muted px-4 py-2 rounded-md text-foreground hover:bg-green-100 dark:hover:bg-green-800 transition-colors duration-200"
               >
-                {player.name}
+                <span>{player.name}</span>
+                <ConfirmDialog
+                  title={`确定要删除玩家「${player.name}」吗？`}
+                  description="该操作不可撤销，将永久删除玩家数据。"
+                  onConfirm={async () => {
+                    try {
+                      await deletePlayer(player.id);
+                    } catch (err: any) {
+                      alert(err.message || "删除失败");
+                    }
+                  }}
+                  trigger={
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-700 hover:scale-105"
+                    >
+                      删除
+                    </Button>
+                  }
+                />
               </li>
             ))}
           </ul>

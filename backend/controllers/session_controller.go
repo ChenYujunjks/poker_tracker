@@ -51,7 +51,6 @@ func GetSessions(c *gin.Context) {
 
 // CreateSession 创建新的 poker session（绑定当前用户）
 func CreateSession(c *gin.Context) {
-	// 请求体解析结构体
 	var req struct {
 		Date string `json:"date" binding:"required"` // 格式："2025-04-24"
 	}
@@ -67,7 +66,6 @@ func CreateSession(c *gin.Context) {
 		return
 	}
 
-	// 获取当前用户 ID
 	userIDInterface, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "用户未登录"})
@@ -166,7 +164,6 @@ func UpdateSession(c *gin.Context) {
 		return
 	}
 
-	// 5. 更新并保存
 	session.Date = newDate
 	if err := db.DB.Save(&session).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "更新 Session 失败"})

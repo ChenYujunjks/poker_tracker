@@ -39,10 +39,25 @@ export function useAllPlayers() {
 
     await fetchPlayers(); // 添加后刷新列表
   };
+  const deletePlayer = async (id: number) => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`http://localhost:8080/api/players/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || "删除失败");
+    }
+
+    // 本地更新，也可以选择 fetchPlayers()
+    setPlayers((prev) => prev.filter((p) => p.id !== id));
+  };
 
   useEffect(() => {
     fetchPlayers();
   }, [fetchPlayers]);
 
-  return { allPlayers, loading, addPlayer };
+  return { allPlayers, loading, addPlayer, deletePlayer };
 }

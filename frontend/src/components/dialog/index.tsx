@@ -6,11 +6,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { toast } from "sonner";
 import PlayerTable from "./PlayerTable";
+import CreateSessionPrompt from "./sessions/CreateSession";
+
 import { useAllPlayers } from "@/hooks/useAllPlayers";
 import { useGameRecords } from "@/hooks/useGameRecords";
 import { useCreateSession } from "@/hooks/useCreateSession";
-import CreateSessionPrompt from "./sessions/CreateSession";
 
 type Props = {
   open: boolean;
@@ -38,11 +40,19 @@ export default function CustomDialog({
 
   const handleCreateSession = async () => {
     if (!date) return;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (date > today) {
+      toast.error("不能创建未来日期的 session");
+      return;
+    }
+
     try {
       const created = await createSession(date);
       onSessionCreated?.(created.id, date);
     } catch (err: any) {
-      alert(err.message || "创建 session 失败");
+      toast.error(err.message || "创建 session 失败");
     }
   };
 

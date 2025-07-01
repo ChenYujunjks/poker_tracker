@@ -1,6 +1,5 @@
 // hooks/useDeleteSession.ts
 import { useCallback } from "react";
-import { toast } from "sonner";
 
 export function useDeleteSession() {
   return {
