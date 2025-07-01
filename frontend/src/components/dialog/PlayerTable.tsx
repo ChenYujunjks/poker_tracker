@@ -56,12 +56,32 @@ export default function PlayerTable({
             key={index}
             className="hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
           >
-            <EditableCell
-              value={player.name}
-              isEditing={editingIndex === index}
-              onChange={(val) => updateField(index, "name", val)}
-              onEdit={() => setEditingIndex(index)}
-            />
+            <td className="px-2 py-1">
+              {editingIndex === index ? (
+                <SelectEditor
+                  value={data[index].playerId.toString()}
+                  options={playerOptions.map((p) => ({
+                    label: p.name,
+                    value: p.id.toString(),
+                  }))}
+                  onChange={(val) => {
+                    const matched = playerOptions.find(
+                      (p) => p.id.toString() === val
+                    );
+                    updateField(index, "playerId", Number(val));
+                    updateField(index, "name", matched?.name || "");
+                  }}
+                />
+              ) : (
+                <span
+                  className="cursor-pointer px-2 py-1 block"
+                  onClick={() => setEditingIndex(index)}
+                >
+                  {player.name}
+                </span>
+              )}
+            </td>
+
             <EditableCell
               value={String(player.buyIn)}
               isEditing={editingIndex === index}

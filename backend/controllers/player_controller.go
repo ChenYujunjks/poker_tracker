@@ -91,7 +91,6 @@ func CreatePlayer(c *gin.Context) {
 	})
 }
 
-// DeletePlayer 删除指定玩家（只能删除属于当前用户的）
 func DeletePlayer(c *gin.Context) {
 	// 获取当前用户的 ID
 	userIDInterface, exists := c.Get("userID")
@@ -108,10 +107,23 @@ func DeletePlayer(c *gin.Context) {
 	// 获取要删除的玩家 ID（从路由参数）
 	playerID := c.Param("id")
 
-	// 在数据库中查找该玩家，确保归属当前用户
+	// 查找该玩家，确保归属当前用户
 	var player model.Player
 	if err := db.DB.Where("id = ? AND user_id = ?", playerID, userID).First(&player).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "未找到该玩家或无权限删除"})
+		return
+	}
+
+	// 检查是否存在关联的游戏记录
+	var count int64
+	if err := db.DB.Model(&model.GameRecord{}).
+		Where("player_id = ?", playerID).
+		Count(&count).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "查询玩家关联记录失败"})
+		return
+	}
+	if count > 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "该玩家有关联的游戏记录，无法删除"})
 		return
 	}
 

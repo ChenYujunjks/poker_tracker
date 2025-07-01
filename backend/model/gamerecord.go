@@ -15,6 +15,6 @@ type GameRecord struct {
 	UserID    uint     `gorm:"column:user_id;not null"`
 	//外键
 	User    User    `gorm:"foreignKey:UserID"`
-	Session Session `gorm:"foreignKey:SessionID"`
-	Player  Player  `gorm:"foreignKey:PlayerID"`
+	Session Session `gorm:"foreignKey:SessionID;constraint:OnDelete:CASCADE"`
+	Player  Player  `gorm:"foreignKey:PlayerID;constraint:OnDelete:RESTRICT"`
 }

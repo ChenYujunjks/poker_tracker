@@ -11,4 +11,7 @@ type Player struct {
 	UserID uint   `gorm:"column:user_id;not null"`
 	//foreign key relationship with User
 	User User `gorm:"foreignKey:UserID"`
+
+	//反向引用
+	GameRecords []GameRecord `gorm:"foreignKey:PlayerID"`
 }
