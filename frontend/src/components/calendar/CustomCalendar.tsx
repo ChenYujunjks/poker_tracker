@@ -1,6 +1,5 @@
 "use client";
-
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import CustomDialog from "../dialog";
 
@@ -43,17 +42,6 @@ export default function CustomCalendar() {
       })
       .catch((err) => alert(err.message));
   }, []);
-
-  /*
-    const addEvent = useCallback(
-    (text: string) => {
-      if (!activeDate) return;
-      const k = key(activeDate);
-      setEvents((prev) => ({ ...prev, [k]: [...(prev[k] ?? []), text] }));
-    },
-    [activeDate]
-  );
-  */
 
   const modifiers = {
     hasEvent: (day: Date) => !!events[key(day)],
