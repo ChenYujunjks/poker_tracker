@@ -28,7 +28,7 @@ func CreateGameRecord(c *gin.Context) {
 		CashOut   *float64 `json:"cash_out"` // 可选
 		Paid      *bool    `json:"paid"`     // 可选
 	}
-	
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "请求数据格式错误，session_id/player_id/buy_in 为必填"})
 		return
@@ -65,7 +65,7 @@ func CreateGameRecord(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "该记录已存在，不能重复添加"})
 		return
 	}
-	
+
 	record := model.GameRecord{
 		SessionID: req.SessionID,
 		PlayerID:  req.PlayerID,
@@ -89,7 +89,6 @@ func CreateGameRecord(c *gin.Context) {
 	})
 }
 
-// UpdateGameRecord 更新游戏记录（cashOut、paid）
 func UpdateGameRecord(c *gin.Context) {
 	recordID := c.Param("id")
 	userIDInterface, exists := c.Get("userID")
@@ -113,24 +112,28 @@ func UpdateGameRecord(c *gin.Context) {
 		return
 	}
 
+	// 检查至少有一个字段需要更新
+	if req.BuyIn == nil && req.CashOut == nil && req.Paid == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "没有要更新的字段"})
+		return
+	}
 	var record model.GameRecord
 	if err := db.DB.Where("id = ? AND user_id = ?", recordID, userID).First(&record).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "记录不存在或无权限修改"})
 		return
 	}
-	
-	// 逐个字段更新（全部为指针，允许为空）
+
+	updates := map[string]interface{}{}
 	if req.BuyIn != nil {
-		record.BuyIn = req.BuyIn
+		updates["buy_in"] = req.BuyIn
 	}
 	if req.CashOut != nil {
-		record.CashOut = req.CashOut
+		updates["cash_out"] = req.CashOut
 	}
 	if req.Paid != nil {
-		record.Paid = req.Paid
+		updates["paid"] = req.Paid
 	}
-
-	if err := db.DB.Save(&record).Error; err != nil {
+	if err := db.DB.Model(&record).Updates(updates).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "更新记录失败"})
 		return
 	}
