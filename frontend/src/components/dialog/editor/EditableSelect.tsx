@@ -19,7 +19,7 @@ interface SelectEditorProps {
   onChange: (v: string) => void;
 }
 
-export const SelectEditor = React.memo(
+const SelectEditor = React.memo(
   ({ value, options, onChange }: SelectEditorProps) => (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger className="w-full">
@@ -35,3 +35,5 @@ export const SelectEditor = React.memo(
     </Select>
   )
 );
+
+export default SelectEditor;

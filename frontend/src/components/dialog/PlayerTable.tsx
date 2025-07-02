@@ -1,8 +1,8 @@
-// components/dialog/PlayerTable.tsx
 import { useState } from "react";
 import EditableCell from "./editor/EditableCell";
-import { SelectEditor } from "./editor/EditableSelect";
+import SelectEditor from "./editor/EditableSelect";
 import AddRowPlaceholder from "./editor/AddRowPlaceholder";
+import { toast } from "sonner";
 import type { PlayerRecord } from "@/lib/types";
 
 type Props = {
@@ -28,16 +28,39 @@ export default function PlayerTable({
     paid: false,
   });
 
-  type PlayerRecordField = string | number | boolean;
-
-  const updateField = (
-    index: number,
-    field: keyof PlayerRecord,
-    value: PlayerRecordField
+  // ✅ 解耦式自动保存方法
+  const handleCellSave = async (
+    rowId: number,
+    field: string,
+    newValue: any
   ) => {
-    const updated = [...data];
-    updated[index] = { ...updated[index], [field]: value };
-    onChange(updated);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `http://localhost:8080/api/game-records/${rowId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ [field]: newValue }),
+        }
+      );
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "更新失败");
+      }
+
+      const updated = data.map((rec) =>
+        rec.playerId === rowId ? { ...rec, [field]: newValue } : rec
+      );
+      onChange(updated);
+      toast.success("已保存");
+    } catch (err: any) {
+      toast.error(err.message || "保存失败");
+    }
   };
 
   return (
@@ -53,13 +76,13 @@ export default function PlayerTable({
       <tbody>
         {data.map((player, index) => (
           <tr
-            key={index}
+            key={player.playerId}
             className="hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
           >
             <td className="px-2 py-1">
               {editingIndex === index ? (
                 <SelectEditor
-                  value={data[index].playerId.toString()}
+                  value={player.playerId.toString()}
                   options={playerOptions.map((p) => ({
                     label: p.name,
                     value: p.id.toString(),
@@ -68,8 +91,13 @@ export default function PlayerTable({
                     const matched = playerOptions.find(
                       (p) => p.id.toString() === val
                     );
-                    updateField(index, "playerId", Number(val));
-                    updateField(index, "name", matched?.name || "");
+                    // 同时更新两个字段
+                    handleCellSave(player.playerId, "playerId", Number(val));
+                    handleCellSave(
+                      player.playerId,
+                      "name",
+                      matched?.name || ""
+                    );
                   }}
                 />
               ) : (
@@ -81,24 +109,28 @@ export default function PlayerTable({
                 </span>
               )}
             </td>
-
-            <EditableCell
-              value={String(player.buyIn)}
-              isEditing={editingIndex === index}
-              onChange={(val) => updateField(index, "buyIn", Number(val))}
-              onEdit={() => setEditingIndex(index)}
-            />
-            <EditableCell
-              value={String(player.cashOut)}
-              isEditing={editingIndex === index}
-              onChange={(val) => updateField(index, "cashOut", Number(val))}
-              onEdit={() => setEditingIndex(index)}
-            />
             <td className="px-2 py-1">
-              <input
-                type="checkbox"
-                checked={player.paid}
-                onChange={(e) => updateField(index, "paid", e.target.checked)}
+              <EditableCell
+                value={player.buyIn}
+                rowId={player.playerId}
+                columnKey="buy_in"
+                onSave={handleCellSave}
+              />
+            </td>
+            <td className="px-2 py-1">
+              <EditableCell
+                value={player.cashOut}
+                rowId={player.playerId}
+                columnKey="cash_out"
+                onSave={handleCellSave}
+              />
+            </td>
+            <td className="px-2 py-1">
+              <EditableCell
+                value={player.paid}
+                rowId={player.playerId}
+                columnKey="paid"
+                onSave={handleCellSave}
               />
             </td>
           </tr>
@@ -106,7 +138,6 @@ export default function PlayerTable({
 
         {adding ? (
           <tr className="bg-zinc-50 dark:bg-zinc-800">
-            {/* select */}
             <td className="px-2 py-1">
               <SelectEditor
                 value={newRecord.playerId.toString()}
@@ -126,42 +157,36 @@ export default function PlayerTable({
                 }}
               />
             </td>
-
-            {/* buy-in */}
-            <EditableCell
-              value={newRecord.buyIn.toString()}
-              isEditing={true}
-              onChange={(val) =>
-                setNewRecord((prev) => ({ ...prev, buyIn: Number(val) }))
-              }
-              onEdit={() => {}}
-            />
-
-            {/* cash-out */}
-            <EditableCell
-              value={newRecord.cashOut.toString()}
-              isEditing={true}
-              onChange={(val) =>
-                setNewRecord((prev) => ({ ...prev, cashOut: Number(val) }))
-              }
-              onEdit={() => {}}
-            />
-
-            {/* paid checkbox */}
             <td className="px-2 py-1">
-              <input
-                type="checkbox"
-                checked={newRecord.paid}
-                onChange={(e) =>
-                  setNewRecord((prev) => ({
-                    ...prev,
-                    paid: e.target.checked,
-                  }))
+              <EditableCell
+                value={newRecord.buyIn}
+                rowId={-1}
+                columnKey="buy_in"
+                onSave={(_, __, val) =>
+                  setNewRecord((prev) => ({ ...prev, buyIn: Number(val) }))
                 }
               />
             </td>
-
-            {/* action buttons */}
+            <td className="px-2 py-1">
+              <EditableCell
+                value={newRecord.cashOut}
+                rowId={-1}
+                columnKey="cash_out"
+                onSave={(_, __, val) =>
+                  setNewRecord((prev) => ({ ...prev, cashOut: Number(val) }))
+                }
+              />
+            </td>
+            <td className="px-2 py-1">
+              <EditableCell
+                value={newRecord.paid}
+                rowId={-1}
+                columnKey="paid"
+                onSave={(_, __, val) =>
+                  setNewRecord((prev) => ({ ...prev, paid: Boolean(val) }))
+                }
+              />
+            </td>
             <td className="px-2 py-1">
               <button
                 className="px-2 py-1 bg-green-600 text-white rounded mr-2"
@@ -186,7 +211,8 @@ export default function PlayerTable({
                   );
 
                   if (res.ok) {
-                    onChange([...data, newRecord]);
+                    const saved = await res.json();
+                    onChange([...data, { ...newRecord, playerId: saved.id }]);
                     setAdding(false);
                     setNewRecord({
                       playerId: -1,

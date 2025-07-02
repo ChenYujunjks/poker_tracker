@@ -115,7 +115,6 @@ func DeleteSession(c *gin.Context) {
 		return
 	}
 
-	// 2. 获取 Session ID
 	sessionID := c.Param("id")
 
 	// 3. 查找并验证归属
@@ -125,8 +124,8 @@ func DeleteSession(c *gin.Context) {
 		return
 	}
 
-	// 4. 删除
-	if err := db.DB.Delete(&session).Error; err != nil {
+	// 4. 删除（硬删除触发数据库级联删除）
+	if err := db.DB.Unscoped().Delete(&session).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "删除 Session 失败"})
 		return
 	}
