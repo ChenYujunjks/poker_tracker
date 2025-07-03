@@ -1,8 +1,7 @@
-// components/dialog/editor/EditableCell.tsx
 import { useState, useEffect } from "react";
 
 type Props = {
-  value: any;
+  value: string | number;
   rowId: number;
   columnKey: string;
   onSave: (rowId: number, columnKey: string, newValue: any) => void;
@@ -28,35 +27,26 @@ export default function EditableCell({
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      e.currentTarget.blur();
+      e.currentTarget.blur(); // 触发保存
     }
   };
-
-  // 动态渲染不同类型的输入组件
-  if (columnKey === "paid") {
-    return (
-      <input
-        type="checkbox"
-        checked={!!editingValue}
-        onChange={(e) => onSave(rowId, columnKey, e.target.checked)}
-      />
-    );
-  }
 
   const isNumeric = columnKey === "buy_in" || columnKey === "cash_out";
 
   return (
-    <input
-      type={isNumeric ? "number" : "text"}
-      className="w-full bg-transparent border-b border-gray-300 focus:outline-none"
-      value={editingValue ?? ""}
-      onChange={(e) =>
-        isNumeric
-          ? setEditingValue(Number(e.target.value))
-          : setEditingValue(e.target.value)
-      }
-      onBlur={handleBlur}
-      onKeyDown={handleKeyDown}
-    />
+    <td className="px-2 py-1">
+      <input
+        type={isNumeric ? "number" : "text"}
+        className="w-full bg-transparent border-b border-gray-300 focus:outline-none"
+        value={editingValue ?? ""}
+        onChange={(e) =>
+          isNumeric
+            ? setEditingValue(Number(e.target.value))
+            : setEditingValue(e.target.value)
+        }
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+      />
+    </td>
   );
 }

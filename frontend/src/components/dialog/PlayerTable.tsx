@@ -1,6 +1,7 @@
 import { useState } from "react";
 import EditableCell from "./editor/EditableCell";
 import SelectEditor from "./editor/EditableSelect";
+import EditableCheckbox from "./editor/EditableCheckbox";
 import AddRowPlaceholder from "./editor/AddRowPlaceholder";
 import { toast } from "sonner";
 import type { PlayerRecord } from "@/lib/types";
@@ -20,7 +21,7 @@ export default function PlayerTable({
 }: Props) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [adding, setAdding] = useState(false);
-  const [newRecord, setNewRecord] = useState<PlayerRecord>({
+  const [newRecord, setNewRecord] = useState<Omit<PlayerRecord, "id">>({
     playerId: -1,
     name: "",
     buyIn: 0,
@@ -28,7 +29,6 @@ export default function PlayerTable({
     paid: false,
   });
 
-  // ✅ 解耦式自动保存方法
   const handleCellSave = async (
     rowId: number,
     field: string,
@@ -54,7 +54,7 @@ export default function PlayerTable({
       }
 
       const updated = data.map((rec) =>
-        rec.playerId === rowId ? { ...rec, [field]: newValue } : rec
+        rec.id === rowId ? { ...rec, [field]: newValue } : rec
       );
       onChange(updated);
       toast.success("已保存");
@@ -76,7 +76,7 @@ export default function PlayerTable({
       <tbody>
         {data.map((player, index) => (
           <tr
-            key={player.playerId}
+            key={player.id}
             className="hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
           >
             <td className="px-2 py-1">
@@ -91,13 +91,8 @@ export default function PlayerTable({
                     const matched = playerOptions.find(
                       (p) => p.id.toString() === val
                     );
-                    // 同时更新两个字段
-                    handleCellSave(player.playerId, "playerId", Number(val));
-                    handleCellSave(
-                      player.playerId,
-                      "name",
-                      matched?.name || ""
-                    );
+                    handleCellSave(player.id, "playerId", Number(val));
+                    handleCellSave(player.id, "name", matched?.name || "");
                   }}
                 />
               ) : (
@@ -109,30 +104,27 @@ export default function PlayerTable({
                 </span>
               )}
             </td>
-            <td className="px-2 py-1">
-              <EditableCell
-                value={player.buyIn}
-                rowId={player.playerId}
-                columnKey="buy_in"
-                onSave={handleCellSave}
-              />
-            </td>
-            <td className="px-2 py-1">
-              <EditableCell
-                value={player.cashOut}
-                rowId={player.playerId}
-                columnKey="cash_out"
-                onSave={handleCellSave}
-              />
-            </td>
-            <td className="px-2 py-1">
-              <EditableCell
-                value={player.paid}
-                rowId={player.playerId}
-                columnKey="paid"
-                onSave={handleCellSave}
-              />
-            </td>
+
+            <EditableCell
+              value={player.buyIn}
+              rowId={player.id}
+              columnKey="buy_in"
+              onSave={handleCellSave}
+            />
+
+            <EditableCell
+              value={player.cashOut}
+              rowId={player.id}
+              columnKey="cash_out"
+              onSave={handleCellSave}
+            />
+
+            <EditableCheckbox
+              checked={player.paid}
+              rowId={player.id}
+              columnKey="paid"
+              onSave={handleCellSave}
+            />
           </tr>
         ))}
 
@@ -157,36 +149,34 @@ export default function PlayerTable({
                 }}
               />
             </td>
-            <td className="px-2 py-1">
-              <EditableCell
-                value={newRecord.buyIn}
-                rowId={-1}
-                columnKey="buy_in"
-                onSave={(_, __, val) =>
-                  setNewRecord((prev) => ({ ...prev, buyIn: Number(val) }))
-                }
-              />
-            </td>
-            <td className="px-2 py-1">
-              <EditableCell
-                value={newRecord.cashOut}
-                rowId={-1}
-                columnKey="cash_out"
-                onSave={(_, __, val) =>
-                  setNewRecord((prev) => ({ ...prev, cashOut: Number(val) }))
-                }
-              />
-            </td>
-            <td className="px-2 py-1">
-              <EditableCell
-                value={newRecord.paid}
-                rowId={-1}
-                columnKey="paid"
-                onSave={(_, __, val) =>
-                  setNewRecord((prev) => ({ ...prev, paid: Boolean(val) }))
-                }
-              />
-            </td>
+
+            <EditableCell
+              value={newRecord.buyIn}
+              rowId={-1}
+              columnKey="buy_in"
+              onSave={(_, __, val) =>
+                setNewRecord((prev) => ({ ...prev, buyIn: Number(val) }))
+              }
+            />
+
+            <EditableCell
+              value={newRecord.cashOut}
+              rowId={-1}
+              columnKey="cash_out"
+              onSave={(_, __, val) =>
+                setNewRecord((prev) => ({ ...prev, cashOut: Number(val) }))
+              }
+            />
+
+            <EditableCheckbox
+              checked={newRecord.paid}
+              rowId={-1}
+              columnKey="paid"
+              onSave={(_, __, val) =>
+                setNewRecord((prev) => ({ ...prev, paid: Boolean(val) }))
+              }
+            />
+
             <td className="px-2 py-1">
               <button
                 className="px-2 py-1 bg-green-600 text-white rounded mr-2"
@@ -212,7 +202,13 @@ export default function PlayerTable({
 
                   if (res.ok) {
                     const saved = await res.json();
-                    onChange([...data, { ...newRecord, playerId: saved.id }]);
+                    onChange([
+                      ...data,
+                      {
+                        ...newRecord,
+                        id: saved.id, // ✅ 关键！用 saved.id 存到记录主键
+                      },
+                    ]);
                     setAdding(false);
                     setNewRecord({
                       playerId: -1,

@@ -1,6 +1,7 @@
 export type PlayerRecord = {
-  playerId: number; // 新增 playerId
-  name: string; // 从已知玩家列表中显示
+  id: number;         // 记录的主键
+  playerId: number;   // 玩家 ID（外键）
+  name: string;
   buyIn: number;
   cashOut: number;
   paid: boolean;
