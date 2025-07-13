@@ -1,7 +1,10 @@
 export function useCreateSession() {
   const createSession = async (date: Date) => {
     const token = localStorage.getItem("token");
-    const formattedDate = date.toISOString().split("T")[0];
+    const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1)
+      .toString()
+      .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
+
     const res = await fetch("http://localhost:8080/api/sessions", {
       method: "POST",
       headers: {

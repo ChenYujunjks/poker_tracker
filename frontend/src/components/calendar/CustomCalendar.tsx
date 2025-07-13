@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import CustomDialog from "../dialog";
+import CustomDialog from "../dialog/CustomDialog";
 
 const DayPicker = dynamic(
   () => import("react-day-picker").then((m) => m.DayPicker),

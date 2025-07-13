@@ -7,15 +7,17 @@ import { toast } from "sonner";
 import type { PlayerRecord } from "@/lib/types";
 
 type Props = {
-  data: PlayerRecord[];
-  onChange: (updated: PlayerRecord[]) => void;
+  records: PlayerRecord[]; // ✅ 改名
+  setRecords: (records: PlayerRecord[]) => void;
+  refetch: () => void;
   playerOptions: { id: number; name: string }[];
   sessionId: number;
 };
 
 export default function PlayerTable({
-  data,
-  onChange,
+  records,
+  setRecords,
+  refetch,
   playerOptions,
   sessionId,
 }: Props) {
@@ -34,6 +36,11 @@ export default function PlayerTable({
     field: string,
     newValue: any
   ) => {
+    if (!rowId || typeof rowId !== "number") {
+      toast.error("非法记录 ID，无法更新");
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(
@@ -53,10 +60,10 @@ export default function PlayerTable({
         throw new Error(err.message || "更新失败");
       }
 
-      const updated = data.map((rec) =>
+      const updated = records.map((rec) =>
         rec.id === rowId ? { ...rec, [field]: newValue } : rec
       );
-      onChange(updated);
+      setRecords(updated);
       toast.success("已保存");
     } catch (err: any) {
       toast.error(err.message || "保存失败");
@@ -74,7 +81,7 @@ export default function PlayerTable({
         </tr>
       </thead>
       <tbody>
-        {data.map((player, index) => (
+        {records.map((player, index) => (
           <tr
             key={player.id?.toString() ?? `row-${index}`}
             className="hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
@@ -201,14 +208,7 @@ export default function PlayerTable({
                   );
 
                   if (res.ok) {
-                    const saved = await res.json();
-                    onChange([
-                      ...data,
-                      {
-                        ...newRecord,
-                        id: saved.id, // ✅ 关键！用 saved.id 存到记录主键
-                      },
-                    ]);
+                    toast.success("添加成功");
                     setAdding(false);
                     setNewRecord({
                       playerId: -1,
@@ -217,6 +217,7 @@ export default function PlayerTable({
                       cashOut: 0,
                       paid: false,
                     });
+                    refetch(); // ✅ 添加后重新拉取数据
                   } else {
                     alert("添加失败");
                   }

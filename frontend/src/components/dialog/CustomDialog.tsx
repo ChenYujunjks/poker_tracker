@@ -14,6 +14,7 @@ import { useAllPlayers } from "@/hooks/useAllPlayers";
 import { useGameRecords } from "@/hooks/useGameRecords";
 import { useCreateSession } from "@/hooks/useCreateSession";
 
+import { useMemo } from "react";
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -32,10 +33,18 @@ export default function CustomDialog({
   onSessionCreated,
 }: Props) {
   const { allPlayers } = useAllPlayers();
-  const { records, setRecords, loading } = useGameRecords(
+  const playerOptions = useMemo(() => {
+    return allPlayers.map((p) => ({
+      id: p.id,
+      name: p.name,
+    }));
+  }, [allPlayers]);
+
+  const { records, setRecords, loading, refetch } = useGameRecords(
     sessionId,
-    allPlayers
+    playerOptions
   );
+
   const { createSession } = useCreateSession();
 
   const handleCreateSession = async () => {
@@ -70,10 +79,11 @@ export default function CustomDialog({
         ) : (
           <>
             <PlayerTable
-              data={records}
-              onChange={setRecords}
-              playerOptions={allPlayers}
+              records={records}
+              setRecords={setRecords}
+              refetch={refetch}
               sessionId={sessionId}
+              playerOptions={playerOptions}
             />
             <div className="mt-6 flex justify-end">
               <DeleteSessionButton sessionId={sessionId} onDeleted={onClose} />
