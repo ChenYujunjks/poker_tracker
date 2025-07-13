@@ -76,7 +76,7 @@ export default function PlayerTable({
       <tbody>
         {data.map((player, index) => (
           <tr
-            key={player.id}
+            key={player.id?.toString() ?? `row-${index}`}
             className="hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
           >
             <td className="px-2 py-1">

@@ -21,6 +21,7 @@ export function useGameRecords(sessionId: number | null, allPlayers: any[]) {
       const enriched = safeData.map((r: any) => {
         const matched = allPlayers.find((p) => p.id === r.player_id);
         return {
+          id: r.id, // ✅ 添加这个字段
           playerId: r.player_id,
           name: matched?.name || "未知",
           buyIn: r.buy_in ?? 0,
