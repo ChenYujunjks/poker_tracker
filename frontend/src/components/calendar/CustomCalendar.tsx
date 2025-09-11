@@ -30,14 +30,12 @@ export default function CustomCalendar() {
         return res.json();
       })
       .then((data: { id: number; date: string }[]) => {
+        // ✅ 后端直接返回 YYYY-MM-DD
         const newEvents: Record<string, string[]> = {};
         const newSessionMap: Record<string, number> = {};
         data.forEach((session) => {
-          // 如果后端直接返回 "YYYY-MM-DD"，这里可以直接用
-          // 如果返回 ISO，就先转一下
-          const dateKey = normalizeDate(session.date);
-          newEvents[dateKey] = [];
-          newSessionMap[dateKey] = session.id;
+          newEvents[session.date] = [];
+          newSessionMap[session.date] = session.id;
         });
         setEvents(newEvents);
         setSessionIdMap(newSessionMap);
@@ -66,7 +64,6 @@ export default function CustomCalendar() {
         }}
       />
 
-      {/* Custom Dialog */}
       <CustomDialog
         open={!!activeDate}
         onClose={() => setActiveDate(null)}
@@ -79,19 +76,10 @@ export default function CustomCalendar() {
   );
 }
 
-// 把 Date 转成 "YYYY-MM-DD"
+// ✅ 统一 key 函数，保证前后端一致
 const key = (d: Date) => {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
-};
-
-// 兼容后端返回的格式（无论是 ISO 还是 YYYY-MM-DD）
-const normalizeDate = (dateStr: string): string => {
-  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-    return dateStr; // 已经是 YYYY-MM-DD
-  }
-  const d = new Date(dateStr);
-  return key(d);
 };
