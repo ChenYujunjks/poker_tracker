@@ -13,7 +13,7 @@ export default function CustomCalendar() {
   const [activeDate, setActiveDate] = useState<Date | null>(null);
   const [sessionIdMap, setSessionIdMap] = useState<Record<string, number>>({});
 
-  // 将 date 数组转换为 events 字典（每个日期一个空数组或初始备注）
+  // 创建新的 session
   const handleSessionCreated = (sessionId: number, date: Date) => {
     const k = key(date);
     setEvents((prev) => ({ ...prev, [k]: [] }));
@@ -33,8 +33,10 @@ export default function CustomCalendar() {
         const newEvents: Record<string, string[]> = {};
         const newSessionMap: Record<string, number> = {};
         data.forEach((session) => {
-          const dateKey = key(new Date(session.date));
-          newEvents[dateKey] = []; // 或你可以加上初始描述，如 [`Session #${session.id}`]
+          // 如果后端直接返回 "YYYY-MM-DD"，这里可以直接用
+          // 如果返回 ISO，就先转一下
+          const dateKey = normalizeDate(session.date);
+          newEvents[dateKey] = [];
           newSessionMap[dateKey] = session.id;
         });
         setEvents(newEvents);
@@ -69,7 +71,7 @@ export default function CustomCalendar() {
         open={!!activeDate}
         onClose={() => setActiveDate(null)}
         date={activeDate}
-        hasSession={activeDate ? !!events[key(activeDate)] : false} // 检查是否存在该日期的事件
+        hasSession={activeDate ? !!events[key(activeDate)] : false}
         sessionId={activeDate ? sessionIdMap[key(activeDate)] ?? null : null}
         onSessionCreated={handleSessionCreated}
       />
@@ -77,4 +79,19 @@ export default function CustomCalendar() {
   );
 }
 
-const key = (d: Date) => d.toISOString().split("T")[0];
+// 把 Date 转成 "YYYY-MM-DD"
+const key = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
+// 兼容后端返回的格式（无论是 ISO 还是 YYYY-MM-DD）
+const normalizeDate = (dateStr: string): string => {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    return dateStr; // 已经是 YYYY-MM-DD
+  }
+  const d = new Date(dateStr);
+  return key(d);
+};
