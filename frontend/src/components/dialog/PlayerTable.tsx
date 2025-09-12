@@ -1,8 +1,8 @@
 import { useState } from "react";
-import EditableCell from "./editor/EditableCell";
-import SelectEditor from "./editor/EditableSelect";
-import EditableCheckbox from "./editor/EditableCheckbox";
-import AddRowPlaceholder from "./editor/AddRowPlaceholder";
+import EditableCell from "./Editor/EditableCell";
+import SelectEditor from "./Editor/EditableSelect";
+import EditableCheckbox from "./Editor/EditableCheckbox";
+import AddRowPlaceholder from "./Editor/AddRowPlaceholder";
 import { toast } from "sonner";
 import type { PlayerRecord } from "@/lib/types";
 

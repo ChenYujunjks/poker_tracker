@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import PlayerTable from "./PlayerTable";
-import CreateSessionPrompt from "./sessions/CreateSession";
-import DeleteSessionButton from "./sessions/DeleteSessionButton";
+import CreateSessionPrompt from "./Sessions/CreateSession";
+import DeleteSessionButton from "./Sessions/DeleteSessionButton";
 
 import { useAllPlayers } from "@/hooks/useAllPlayers";
 import { useGameRecords } from "@/hooks/useGameRecords";
