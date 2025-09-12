@@ -34,12 +34,10 @@ export default function CustomDialog({
   onSessionCreated,
 }: Props) {
   const { allPlayers } = useAllPlayers();
-  const playerOptions = useMemo(() => {
-    return allPlayers.map((p) => ({
-      id: p.id,
-      name: p.name,
-    }));
-  }, [allPlayers]);
+  const playerOptions = allPlayers.map((p) => ({
+    id: p.id,
+    name: p.name,
+  }));
 
   const { records, setRecords, loading, refetch } = useGameRecords(
     sessionId,
