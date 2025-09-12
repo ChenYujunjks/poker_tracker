@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import CustomDialog from "../dialog";
+import CustomDialog from "../dialog/CustomDialog";
 
 const DayPicker = dynamic(
   () => import("react-day-picker").then((m) => m.DayPicker),
@@ -10,14 +10,12 @@ const DayPicker = dynamic(
 
 export default function CustomCalendar() {
   const [events, setEvents] = useState<Record<string, string[]>>({});
-  const [activeDate, setActiveDate] = useState<Date | null>(null);
+  const [activeDate, setActiveDate] = useState<string | null>(null);
   const [sessionIdMap, setSessionIdMap] = useState<Record<string, number>>({});
 
-  // 将 date 数组转换为 events 字典（每个日期一个空数组或初始备注）
-  const handleSessionCreated = (sessionId: number, date: Date) => {
-    const k = key(date);
-    setEvents((prev) => ({ ...prev, [k]: [] }));
-    setSessionIdMap((prev) => ({ ...prev, [k]: sessionId }));
+  const handleSessionCreated = (sessionId: number, date: string) => {
+    setEvents((prev) => ({ ...prev, [date]: [] }));
+    setSessionIdMap((prev) => ({ ...prev, [date]: sessionId }));
   };
 
   useEffect(() => {
@@ -33,9 +31,8 @@ export default function CustomCalendar() {
         const newEvents: Record<string, string[]> = {};
         const newSessionMap: Record<string, number> = {};
         data.forEach((session) => {
-          const dateKey = key(new Date(session.date));
-          newEvents[dateKey] = []; // 或你可以加上初始描述，如 [`Session #${session.id}`]
-          newSessionMap[dateKey] = session.id;
+          newEvents[session.date] = [];
+          newSessionMap[session.date] = session.id;
         });
         setEvents(newEvents);
         setSessionIdMap(newSessionMap);
@@ -51,8 +48,11 @@ export default function CustomCalendar() {
     <>
       <DayPicker
         mode="single"
-        selected={activeDate ?? undefined}
-        onDayClick={(d) => setActiveDate(d)}
+        selected={activeDate ? new Date(activeDate) : undefined}
+        onDayClick={(d) => {
+          console.log("你点击了日期:", d, "格式化后:", key(d));
+          setActiveDate(key(d));
+        }}
         modifiers={modifiers}
         modifiersClassNames={{
           hasEvent: "hasEvent",
@@ -64,17 +64,22 @@ export default function CustomCalendar() {
         }}
       />
 
-      {/* Custom Dialog */}
       <CustomDialog
         open={!!activeDate}
         onClose={() => setActiveDate(null)}
-        date={activeDate}
-        hasSession={activeDate ? !!events[key(activeDate)] : false} // 检查是否存在该日期的事件
-        sessionId={activeDate ? sessionIdMap[key(activeDate)] ?? null : null}
-        onSessionCreated={handleSessionCreated}
+        date={activeDate} // ✅ 传字符串，而不是 Date
+        hasSession={activeDate ? !!events[activeDate] : false}
+        sessionId={activeDate ? sessionIdMap[activeDate] ?? null : null}
+        onSessionCreated={(id, d) => handleSessionCreated(id, d)}
       />
     </>
   );
 }
 
-const key = (d: Date) => d.toISOString().split("T")[0];
+// 把 Date 转成 YYYY-MM-DD
+const key = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
