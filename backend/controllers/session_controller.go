@@ -134,6 +134,12 @@ func UpdateSession(c *gin.Context) {
 		return
 	}
 
+	today := time.Now().Format("2006-01-02")
+	if req.Date > today {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "不能更新为未来日期"})
+		return
+	}
+
 	var session model.Session
 	if err := db.DB.Where("id = ? AND user_id = ?", sessionID, userID).First(&session).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "未找到该 Session 或无权限修改"})

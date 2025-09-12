@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import type { PlayerRecord } from "@/lib/types";
 
 type Props = {
-  records: PlayerRecord[]; // ✅ 改名
+  records: PlayerRecord[];
   setRecords: (records: PlayerRecord[]) => void;
   refetch: () => void;
   playerOptions: { id: number; name: string }[];

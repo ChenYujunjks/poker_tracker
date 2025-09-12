@@ -6,7 +6,7 @@ import (
 
 type Session struct {
 	gorm.Model
-	Date   string `gorm:"column:date;type:date;not null"`
+	Date   string `gorm:"column:date;not null"`
 	UserID uint   `gorm:"column:user_id;not null"`
 	//foreign Key
 	User User `gorm:"foreignKey:UserID"`

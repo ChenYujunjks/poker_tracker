@@ -34,7 +34,6 @@ export default function CustomCalendar() {
         const newSessionMap: Record<string, number> = {};
 
         data.forEach((session) => {
-          console.log("➡️ 处理 session.date:", session.date); // 打印每个 session 的 date
           newEvents[session.date] = [];
           newSessionMap[session.date] = session.id;
         });
