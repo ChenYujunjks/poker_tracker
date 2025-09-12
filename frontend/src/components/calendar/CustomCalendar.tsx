@@ -38,9 +38,6 @@ export default function CustomCalendar() {
           newSessionMap[session.date] = session.id;
         });
 
-        console.log("✅ setEvents 之前的 newEvents:", newEvents);
-        console.log("✅ setSessionIdMap 之前的 newSessionMap:", newSessionMap);
-
         setEvents(newEvents);
         setSessionIdMap(newSessionMap);
       })
@@ -83,7 +80,6 @@ export default function CustomCalendar() {
 }
 
 //help funcitons
-
 // 把 Date 转成 YYYY-MM-DD
 const key = (d: Date) => {
   const y = d.getFullYear();
