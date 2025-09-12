@@ -59,18 +59,29 @@ func CreateSession(c *gin.Context) {
 		return
 	}
 
+	// 打印前端传来的原始字符串
+	log.Printf("前端传来的 req.Date = %s", req.Date)
+
+	// 用 Parse 解析（默认 UTC）
 	sessionDate, err := time.Parse("2006-01-02", req.Date)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "日期格式错误，应为 YYYY-MM-DD"})
 		return
 	}
 
+	// 打印解析后的 sessionDate
+	log.Printf("time.Parse 得到的 sessionDate = %v (UTC = %v)", sessionDate, sessionDate.UTC())
+
+	// 今天（本地时区）
 	today := time.Now().Truncate(24 * time.Hour)
+	log.Printf("today 本地时间 = %v", today)
+
 	if sessionDate.After(today) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "不能创建未来日期的 session"})
 		return
 	}
 
+	// 获取用户 ID
 	userIDInterface, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "用户未登录"})
@@ -87,10 +98,16 @@ func CreateSession(c *gin.Context) {
 		UserID: userID,
 	}
 
+	// 打印要存库的值
+	log.Printf("准备存库的 session.Date = %v", session.Date)
+
 	if err := db.DB.Create(&session).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "创建 Session 失败"})
 		return
 	}
+
+	// 打印存库成功后的值（有可能 DB driver 做了转换）
+	log.Printf("存库后读取的 session.Date = %v (Format= %s)", session.Date, session.Date.Format("2006-01-02"))
 
 	c.JSON(http.StatusCreated, SessionResponse{
 		ID:   session.ID,
