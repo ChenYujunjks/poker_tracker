@@ -1,3 +1,4 @@
+// components/dialog/CustomDialog.tsx
 "use client";
 import {
   Dialog,
@@ -38,12 +39,17 @@ export default function CustomDialog({
     name: p.name,
   }));
 
-  const { records, setRecords, loading, refetch } = useGameRecords(
-    sessionId,
-    playerOptions
-  );
-
+  const { records, setRecords, loading, refetch } = useGameRecords(sessionId);
   const { createSession } = useCreateSession();
+
+  // ✅ 在组件里 enrich
+  const enrichedRecords = records.map((r) => {
+    const matched = playerOptions.find((p) => p.id === r.playerId);
+    return {
+      ...r,
+      name: matched?.name || "未知",
+    };
+  });
 
   const handleCreateSession = async () => {
     if (!date) return;
@@ -59,7 +65,7 @@ export default function CustomDialog({
     }
 
     try {
-      const created = await createSession(date); // ✅ 直接传字符串
+      const created = await createSession(date);
       onSessionCreated?.(created.id, date);
     } catch (err: any) {
       toast.error(err.message || "创建 session 失败");
@@ -85,7 +91,7 @@ export default function CustomDialog({
         ) : (
           <>
             <PlayerTable
-              records={records}
+              records={enrichedRecords} // ✅ 用 enrich 过的
               setRecords={setRecords}
               refetch={refetch}
               sessionId={sessionId}

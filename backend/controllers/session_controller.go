@@ -40,12 +40,19 @@ func GetSessions(c *gin.Context) {
 	// 构造返回格式
 	var response []SessionResponse
 	for _, s := range sessions {
+		// 打印数据库原始值（Time对象）
+		log.Printf("数据库原始 Session.Date: %+v", s.Date)
+
+		// 格式化后的字符串
+		formattedDate := s.Date.Format("2006-01-02")
+		log.Printf("格式化后 Session.Date: %s", formattedDate)
+
 		response = append(response, SessionResponse{
 			ID:   s.ID,
-			Date: s.Date.Format("2006-01-02"), // ✅ 强制输出 YYYY-MM-DD
+			Date: formattedDate,
 		})
 	}
-	log.Printf("返回会话列表: %v", response)
+
 	c.JSON(http.StatusOK, response)
 }
 
@@ -68,13 +75,8 @@ func CreateSession(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "日期格式错误，应为 YYYY-MM-DD"})
 		return
 	}
-
-	// 打印解析后的 sessionDate
-	log.Printf("time.Parse 得到的 sessionDate = %v (UTC = %v)", sessionDate, sessionDate.UTC())
-
 	// 今天（本地时区）
 	today := time.Now().Truncate(24 * time.Hour)
-	log.Printf("today 本地时间 = %v", today)
 
 	if sessionDate.After(today) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "不能创建未来日期的 session"})

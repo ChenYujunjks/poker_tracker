@@ -14,7 +14,5 @@ type Session struct {
 	User User `gorm:"foreignKey:UserID"`
 
 	//反向引用
-
 	GameRecords []GameRecord `gorm:"foreignKey:SessionID;constraint:OnDelete:CASCADE"`
-
 }

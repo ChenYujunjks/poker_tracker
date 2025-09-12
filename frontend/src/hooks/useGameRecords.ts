@@ -1,7 +1,8 @@
+// hooks/useGameRecords.ts
 import { useState, useEffect } from "react";
 import type { PlayerRecord } from "@/lib/types";
 
-export function useGameRecords(sessionId: number | null, allPlayers: any[]) {
+export function useGameRecords(sessionId: number | null) {
   const [records, setRecords] = useState<PlayerRecord[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -16,25 +17,13 @@ export function useGameRecords(sessionId: number | null, allPlayers: any[]) {
       }
     );
     const data = await res.json();
-    const safeData = Array.isArray(data) ? data : [];
-    const enriched: PlayerRecord[] = safeData.map((r: any) => {
-      const matched = allPlayers.find((p) => p.id === r.player_id);
-      return {
-        id: r.id, // ✅ 修复类型缺失
-        playerId: r.player_id,
-        name: matched?.name || "未知",
-        buyIn: r.buy_in ?? 0,
-        cashOut: r.cash_out ?? 0,
-        paid: r.paid ?? false,
-      };
-    });
-    setRecords(enriched);
+    setRecords(Array.isArray(data) ? data : []); // ❌ 不 enrich，直接存原始
     setLoading(false);
   };
 
   useEffect(() => {
     fetchRecords();
-  }, [sessionId, allPlayers]);
+  }, [sessionId]);
 
-  return { records, setRecords, loading, refetch: fetchRecords }; // ✅ 添加 refetch
+  return { records, setRecords, loading, refetch: fetchRecords };
 }

@@ -28,12 +28,20 @@ export default function CustomCalendar() {
         return res.json();
       })
       .then((data: { id: number; date: string }[]) => {
+        console.log("📥 前端收到的原始 sessions:", data);
+
         const newEvents: Record<string, string[]> = {};
         const newSessionMap: Record<string, number> = {};
+
         data.forEach((session) => {
+          console.log("➡️ 处理 session.date:", session.date); // 打印每个 session 的 date
           newEvents[session.date] = [];
           newSessionMap[session.date] = session.id;
         });
+
+        console.log("✅ setEvents 之前的 newEvents:", newEvents);
+        console.log("✅ setSessionIdMap 之前的 newSessionMap:", newSessionMap);
+
         setEvents(newEvents);
         setSessionIdMap(newSessionMap);
       })
@@ -50,8 +58,6 @@ export default function CustomCalendar() {
         mode="single"
         selected={activeDate ? toLocalDate(activeDate) : undefined}
         onDayClick={(d) => {
-          console.log("点击的原始 Date:", d.toString());
-          console.log("key(d):", key(d));
           setActiveDate(key(d));
         }}
         modifiers={modifiers}
