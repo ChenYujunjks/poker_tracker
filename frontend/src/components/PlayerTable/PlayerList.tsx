@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import PlayerListBody from "@/components/player/ListBody";
+import PlayerListBody from "@/components/PlayerTable/ListBody";
 import { useAllPlayers } from "@/hooks/useAllPlayers";
 
 export default function PlayerList() {

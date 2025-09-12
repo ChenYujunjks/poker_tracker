@@ -1,4 +1,3 @@
-// components/dialog/PlayerTableContainer.tsx
 "use client";
 
 import { useAllPlayers } from "@/hooks/useAllPlayers";
@@ -16,12 +15,18 @@ export default function PlayerTableContainer({
     allPlayers
   );
 
+  const playerOptions = allPlayers.map((p) => ({
+    id: p.id,
+    name: p.name,
+  }));
+
   return (
     <PlayerTable
       records={records}
       setRecords={setRecords}
       refetch={refetch}
       sessionId={sessionId}
+      playerOptions={playerOptions} // ✅ 保留给 SelectEditor 用
     />
   );
 }
