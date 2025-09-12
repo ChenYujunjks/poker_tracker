@@ -39,17 +39,12 @@ export default function CustomDialog({
     name: p.name,
   }));
 
-  const { records, setRecords, loading, refetch } = useGameRecords(sessionId);
+  // ✅ records 已经是 enrich 过的
+  const { records, setRecords, loading, refetch } = useGameRecords(
+    sessionId,
+    allPlayers
+  );
   const { createSession } = useCreateSession();
-
-  // ✅ 在组件里 enrich
-  const enrichedRecords = records.map((r) => {
-    const matched = playerOptions.find((p) => p.id === r.playerId);
-    return {
-      ...r,
-      name: matched?.name || "未知",
-    };
-  });
 
   const handleCreateSession = async () => {
     if (!date) return;
@@ -91,7 +86,7 @@ export default function CustomDialog({
         ) : (
           <>
             <PlayerTable
-              records={enrichedRecords} // ✅ 用 enrich 过的
+              records={records} // ✅ 直接用
               setRecords={setRecords}
               refetch={refetch}
               sessionId={sessionId}
