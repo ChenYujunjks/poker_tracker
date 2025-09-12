@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
-import type { PlayerRecord } from "@/lib/types";
+import type { PlayerRecord, PlayerOption } from "@/lib/types";
 
-export function useGameRecords(sessionId: number | null, allPlayers: any[]) {
+export function useGameRecords(
+  sessionId: number | null,
+  allPlayers: PlayerOption[]
+) {
   const [records, setRecords] = useState<PlayerRecord[]>([]);
   const [loading, setLoading] = useState(false);
 

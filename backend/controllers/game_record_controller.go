@@ -19,12 +19,47 @@ type GameRecordResponse struct {
 	Paid      *bool    `json:"paid"`
 }
 
+// GetGameRecordsBySession 返回某场 session 的所有记录
+func GetGameRecordsBySession(c *gin.Context) {
+	sessionID := c.Query("session_id")
+	userIDInterface, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "未登录"})
+		return
+	}
+	userID, ok := userIDInterface.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "用户ID类型错误"})
+		return
+	}
+
+	var records []model.GameRecord
+	if err := db.DB.Where("session_id = ? AND user_id = ?", sessionID, userID).Find(&records).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取记录失败"})
+		return
+	}
+
+	var response []GameRecordResponse
+	for _, r := range records {
+		response = append(response, GameRecordResponse{
+			ID:        r.ID,
+			SessionID: r.SessionID,
+			PlayerID:  r.PlayerID,
+			BuyIn:     r.BuyIn,
+			CashOut:   r.CashOut,
+			Paid:      r.Paid,
+		})
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
 // CreateGameRecord 创建游戏记录（含外键校验和重复限制）
 func CreateGameRecord(c *gin.Context) {
 	var req struct {
 		SessionID uint     `json:"session_id" binding:"required"`
 		PlayerID  uint     `json:"player_id" binding:"required"`
-		BuyIn     *float64 `json:"buy_in" binding:"required"`
+		BuyIn     *float64 `json:"buy_in" `  // 可选
 		CashOut   *float64 `json:"cash_out"` // 可选
 		Paid      *bool    `json:"paid"`     // 可选
 	}
@@ -174,39 +209,4 @@ func DeleteGameRecord(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "记录删除成功"})
-}
-
-// GetGameRecordsBySession 返回某场 session 的所有记录
-func GetGameRecordsBySession(c *gin.Context) {
-	sessionID := c.Query("session_id")
-	userIDInterface, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "未登录"})
-		return
-	}
-	userID, ok := userIDInterface.(uint)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "用户ID类型错误"})
-		return
-	}
-
-	var records []model.GameRecord
-	if err := db.DB.Where("session_id = ? AND user_id = ?", sessionID, userID).Find(&records).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取记录失败"})
-		return
-	}
-
-	var response []GameRecordResponse
-	for _, r := range records {
-		response = append(response, GameRecordResponse{
-			ID:        r.ID,
-			SessionID: r.SessionID,
-			PlayerID:  r.PlayerID,
-			BuyIn:     r.BuyIn,
-			CashOut:   r.CashOut,
-			Paid:      r.Paid,
-		})
-	}
-
-	c.JSON(http.StatusOK, response)
 }

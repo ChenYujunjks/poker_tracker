@@ -1,9 +1,11 @@
+// components/dialog/CustomDialog.tsx
 "use client";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import PlayerTable from "./PlayerTable";
@@ -12,14 +14,12 @@ import DeleteSessionButton from "./sessions/DeleteSessionButton";
 
 import { useAllPlayers } from "@/hooks/useAllPlayers";
 import { useGameRecords } from "@/hooks/useGameRecords";
-import { useCreateSession } from "@/hooks/useCreateSession";
-
-import { useMemo } from "react";
+import { useCreateSession } from "@/hooks/sessions/useCreateSession";
 
 type Props = {
   open: boolean;
   onClose: () => void;
-  date: string | null; // ✅ 改成字符串
+  date: string | null;
   hasSession: boolean;
   sessionId: number | null;
   onSessionCreated?: (sessionId: number, date: string) => void;
@@ -39,12 +39,17 @@ export default function CustomDialog({
     name: p.name,
   }));
 
-  const { records, setRecords, loading, refetch } = useGameRecords(
-    sessionId,
-    playerOptions
-  );
-
+  const { records, setRecords, loading, refetch } = useGameRecords(sessionId);
   const { createSession } = useCreateSession();
+
+  // ✅ 在组件里 enrich
+  const enrichedRecords = records.map((r) => {
+    const matched = playerOptions.find((p) => p.id === r.playerId);
+    return {
+      ...r,
+      name: matched?.name || "未知",
+    };
+  });
 
   const handleCreateSession = async () => {
     if (!date) return;
@@ -60,7 +65,7 @@ export default function CustomDialog({
     }
 
     try {
-      const created = await createSession(date); // ✅ 直接传字符串
+      const created = await createSession(date);
       onSessionCreated?.(created.id, date);
     } catch (err: any) {
       toast.error(err.message || "创建 session 失败");
@@ -74,6 +79,9 @@ export default function CustomDialog({
           <DialogTitle>
             {date ? `${date} 的游戏记录` : "请选择日期"}
           </DialogTitle>
+          <DialogDescription>
+            在这里查看或管理该日期的游戏 Session
+          </DialogDescription>
         </DialogHeader>
 
         {!hasSession || !sessionId ? (
@@ -83,7 +91,7 @@ export default function CustomDialog({
         ) : (
           <>
             <PlayerTable
-              records={records}
+              records={enrichedRecords} // ✅ 用 enrich 过的
               setRecords={setRecords}
               refetch={refetch}
               sessionId={sessionId}
