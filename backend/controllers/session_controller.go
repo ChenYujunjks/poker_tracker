@@ -12,8 +12,8 @@ import (
 
 // SessionResponse 定义响应体
 type SessionResponse struct {
-	ID   uint      `json:"id"`
-	Date time.Time `json:"date"`
+	ID   uint   `json:"id"`
+	Date string `json:"date"` // ✅ 用字符串 YYYY-MM-DD
 }
 
 // GetSessions 获取当前用户的所有 Session
@@ -42,14 +42,14 @@ func GetSessions(c *gin.Context) {
 	for _, s := range sessions {
 		response = append(response, SessionResponse{
 			ID:   s.ID,
-			Date: s.Date,
+			Date: s.Date.Format("2006-01-02"), // ✅ 强制输出 YYYY-MM-DD
 		})
 	}
 	log.Printf("返回会话列表: %v", response)
 	c.JSON(http.StatusOK, response)
 }
 
-// CreateSession 创建新的 poker session（绑定当前用户）
+// CreateSession 创建新的 poker session
 func CreateSession(c *gin.Context) {
 	var req struct {
 		Date string `json:"date" binding:"required"` // 格式："2025-04-24"
@@ -59,21 +59,18 @@ func CreateSession(c *gin.Context) {
 		return
 	}
 
-	// 将字符串解析为 time.Time（日期格式必须为 YYYY-MM-DD）
 	sessionDate, err := time.Parse("2006-01-02", req.Date)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "日期格式错误，应为 YYYY-MM-DD"})
 		return
 	}
 
-	// ✅ 添加日期不能超过今天的校验
 	today := time.Now().Truncate(24 * time.Hour)
 	if sessionDate.After(today) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "不能创建未来日期的 session"})
 		return
 	}
 
-	// 获取当前用户 ID
 	userIDInterface, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "用户未登录"})
@@ -97,13 +94,12 @@ func CreateSession(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, SessionResponse{
 		ID:   session.ID,
-		Date: session.Date,
+		Date: session.Date.Format("2006-01-02"), // ✅ 返回字符串
 	})
 }
 
-// DeleteSession 删除指定 Session（只能删除属于自己的）
+// DeleteSession 删除指定 Session
 func DeleteSession(c *gin.Context) {
-	// 1. 取当前登录用户 ID
 	userIDInterface, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "用户未登录"})
@@ -117,14 +113,12 @@ func DeleteSession(c *gin.Context) {
 
 	sessionID := c.Param("id")
 
-	// 3. 查找并验证归属
 	var session model.Session
 	if err := db.DB.Where("id = ? AND user_id = ?", sessionID, userID).First(&session).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "未找到该 Session 或无权限删除"})
 		return
 	}
 
-	// 4. 删除（硬删除触发数据库级联删除）
 	if err := db.DB.Unscoped().Delete(&session).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "删除 Session 失败"})
 		return
@@ -133,9 +127,8 @@ func DeleteSession(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Session 删除成功"})
 }
 
-// UpdateSession 修改指定 Session 的日期（只能操作属于自己的）
+// UpdateSession 修改指定 Session 的日期
 func UpdateSession(c *gin.Context) {
-	// 1. 取当前登录用户 ID
 	userIDInterface, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "用户未登录"})
@@ -147,12 +140,10 @@ func UpdateSession(c *gin.Context) {
 		return
 	}
 
-	// 2. 获取路径参数里的 Session ID
 	sessionID := c.Param("id")
 
-	// 3. 解析请求体中的新日期
 	var req struct {
-		Date string `json:"date" binding:"required"` // 必填，格式 YYYY-MM-DD
+		Date string `json:"date" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "请求数据格式错误"})
@@ -164,7 +155,6 @@ func UpdateSession(c *gin.Context) {
 		return
 	}
 
-	// 4. 查找目标 Session（确保归属当前用户）
 	var session model.Session
 	if err := db.DB.Where("id = ? AND user_id = ?", sessionID, userID).First(&session).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "未找到该 Session 或无权限修改"})
@@ -179,6 +169,6 @@ func UpdateSession(c *gin.Context) {
 
 	c.JSON(http.StatusOK, SessionResponse{
 		ID:   session.ID,
-		Date: session.Date,
+		Date: session.Date.Format("2006-01-02"), // ✅ 返回字符串
 	})
 }
