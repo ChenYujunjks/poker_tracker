@@ -13,7 +13,7 @@ import (
 // SessionResponse 定义响应体
 type SessionResponse struct {
 	ID   uint   `json:"id"`
-	Date string `json:"date"` // ✅ 用字符串 YYYY-MM-DD
+	Date string `json:"date"` // ✅ 字符串 YYYY-MM-DD
 }
 
 // GetSessions 获取当前用户的所有 Session
@@ -40,16 +40,10 @@ func GetSessions(c *gin.Context) {
 	// 构造返回格式
 	var response []SessionResponse
 	for _, s := range sessions {
-		// 打印数据库原始值（Time对象）
-		log.Printf("数据库原始 Session.Date: %+v", s.Date)
-
-		// 格式化后的字符串
-		formattedDate := s.Date.Format("2006-01-02")
-		log.Printf("格式化后 Session.Date: %s", formattedDate)
-
+		log.Printf("数据库原始 Session.Date: %s", s.Date)
 		response = append(response, SessionResponse{
 			ID:   s.ID,
-			Date: formattedDate,
+			Date: s.Date,
 		})
 	}
 
@@ -66,19 +60,17 @@ func CreateSession(c *gin.Context) {
 		return
 	}
 
-	// 打印前端传来的原始字符串
 	log.Printf("前端传来的 req.Date = %s", req.Date)
 
-	// 用 Parse 解析（默认 UTC）
-	sessionDate, err := time.Parse("2006-01-02", req.Date)
-	if err != nil {
+	// 校验格式 YYYY-MM-DD
+	if _, err := time.Parse("2006-01-02", req.Date); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "日期格式错误，应为 YYYY-MM-DD"})
 		return
 	}
-	// 今天（本地时区）
-	today := time.Now().Truncate(24 * time.Hour)
 
-	if sessionDate.After(today) {
+	// 检查是否为未来日期
+	today := time.Now().Format("2006-01-02")
+	if req.Date > today {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "不能创建未来日期的 session"})
 		return
 	}
@@ -96,24 +88,67 @@ func CreateSession(c *gin.Context) {
 	}
 
 	session := model.Session{
-		Date:   sessionDate,
+		Date:   req.Date,
 		UserID: userID,
 	}
-
-	// 打印要存库的值
-	log.Printf("准备存库的 session.Date = %v", session.Date)
 
 	if err := db.DB.Create(&session).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "创建 Session 失败"})
 		return
 	}
 
-	// 打印存库成功后的值（有可能 DB driver 做了转换）
-	log.Printf("存库后读取的 session.Date = %v (Format= %s)", session.Date, session.Date.Format("2006-01-02"))
+	log.Printf("存库成功的 session.Date = %s", session.Date)
 
 	c.JSON(http.StatusCreated, SessionResponse{
 		ID:   session.ID,
-		Date: session.Date.Format("2006-01-02"), // ✅ 返回字符串
+		Date: session.Date,
+	})
+}
+
+// UpdateSession 修改指定 Session 的日期
+func UpdateSession(c *gin.Context) {
+	userIDInterface, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "用户未登录"})
+		return
+	}
+	userID, ok := userIDInterface.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "用户ID类型错误"})
+		return
+	}
+
+	sessionID := c.Param("id")
+
+	var req struct {
+		Date string `json:"date" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "请求数据格式错误"})
+		return
+	}
+
+	// 校验格式
+	if _, err := time.Parse("2006-01-02", req.Date); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "日期格式错误，应为 YYYY-MM-DD"})
+		return
+	}
+
+	var session model.Session
+	if err := db.DB.Where("id = ? AND user_id = ?", sessionID, userID).First(&session).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "未找到该 Session 或无权限修改"})
+		return
+	}
+
+	session.Date = req.Date
+	if err := db.DB.Save(&session).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "更新 Session 失败"})
+		return
+	}
+
+	c.JSON(http.StatusOK, SessionResponse{
+		ID:   session.ID,
+		Date: session.Date,
 	})
 }
 
@@ -144,50 +179,4 @@ func DeleteSession(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Session 删除成功"})
-}
-
-// UpdateSession 修改指定 Session 的日期
-func UpdateSession(c *gin.Context) {
-	userIDInterface, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "用户未登录"})
-		return
-	}
-	userID, ok := userIDInterface.(uint)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "用户ID类型错误"})
-		return
-	}
-
-	sessionID := c.Param("id")
-
-	var req struct {
-		Date string `json:"date" binding:"required"`
-	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "请求数据格式错误"})
-		return
-	}
-	newDate, err := time.Parse("2006-01-02", req.Date)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "日期格式错误，应为 YYYY-MM-DD"})
-		return
-	}
-
-	var session model.Session
-	if err := db.DB.Where("id = ? AND user_id = ?", sessionID, userID).First(&session).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "未找到该 Session 或无权限修改"})
-		return
-	}
-
-	session.Date = newDate
-	if err := db.DB.Save(&session).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "更新 Session 失败"})
-		return
-	}
-
-	c.JSON(http.StatusOK, SessionResponse{
-		ID:   session.ID,
-		Date: session.Date.Format("2006-01-02"), // ✅ 返回字符串
-	})
 }
