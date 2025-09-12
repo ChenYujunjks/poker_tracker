@@ -8,12 +8,14 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import PlayerTable from "./PlayerTable";
-import CreateSessionPrompt from "./sessions/CreateSession";
-import DeleteSessionButton from "./sessions/DeleteSessionButton";
+
+import CreateSessionPrompt from "./Sessions/CreateSession";
+import DeleteSessionButton from "./Sessions/DeleteSessionButton";
 
 import { useAllPlayers } from "@/hooks/useAllPlayers";
-import { useGameRecords } from "@/hooks/useGameRecords";
+import { useGameRecords } from "@/hooks/game/useGameRecords";
+import PlayerTable from "./PlayerTable";
+
 import { useCreateSession } from "@/hooks/sessions/useCreateSession";
 
 type Props = {
@@ -33,24 +35,15 @@ export default function CustomDialog({
   sessionId,
   onSessionCreated,
 }: Props) {
-  const { allPlayers } = useAllPlayers();
-  const playerOptions = allPlayers.map((p) => ({
-    id: p.id,
-    name: p.name,
-  }));
-
-  const { records, setRecords, loading, refetch } = useGameRecords(sessionId);
   const { createSession } = useCreateSession();
 
-  // ✅ 在组件里 enrich
-  const enrichedRecords = records.map((r) => {
-    const matched = playerOptions.find((p) => p.id === r.playerId);
-    return {
-      ...r,
-      name: matched?.name || "未知",
-    };
-  });
+  const { allPlayers } = useAllPlayers();
+  const { records, updateRecord, addRecord } = useGameRecords(
+    sessionId,
+    allPlayers
+  );
 
+  const playerOptions = allPlayers.map((p) => ({ id: p.id, name: p.name }));
   const handleCreateSession = async () => {
     if (!date) return;
 
@@ -84,6 +77,7 @@ export default function CustomDialog({
           </DialogDescription>
         </DialogHeader>
 
+        {/* ✅ 要么显示创建，要么显示表格 */}
         {!hasSession || !sessionId ? (
           date ? (
             <CreateSessionPrompt date={date} onCreate={handleCreateSession} />
@@ -91,11 +85,10 @@ export default function CustomDialog({
         ) : (
           <>
             <PlayerTable
-              records={enrichedRecords} // ✅ 用 enrich 过的
-              setRecords={setRecords}
-              refetch={refetch}
-              sessionId={sessionId}
+              records={records}
               playerOptions={playerOptions}
+              updateRecord={updateRecord}
+              addRecord={addRecord}
             />
             <div className="mt-6 flex justify-end">
               <DeleteSessionButton sessionId={sessionId} onDeleted={onClose} />
