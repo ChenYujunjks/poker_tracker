@@ -8,12 +8,11 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import PlayerTable from "./PlayerTable";
+
 import CreateSessionPrompt from "./Sessions/CreateSession";
 import DeleteSessionButton from "./Sessions/DeleteSessionButton";
+import PlayerTableContainer from "./PlayerContainer";
 
-import { useAllPlayers } from "@/hooks/useAllPlayers";
-import { useGameRecords } from "@/hooks/useGameRecords";
 import { useCreateSession } from "@/hooks/sessions/useCreateSession";
 
 type Props = {
@@ -33,17 +32,6 @@ export default function CustomDialog({
   sessionId,
   onSessionCreated,
 }: Props) {
-  const { allPlayers } = useAllPlayers();
-  const playerOptions = allPlayers.map((p) => ({
-    id: p.id,
-    name: p.name,
-  }));
-
-  // ✅ records 已经是 enrich 过的
-  const { records, setRecords, loading, refetch } = useGameRecords(
-    sessionId,
-    allPlayers
-  );
   const { createSession } = useCreateSession();
 
   const handleCreateSession = async () => {
@@ -79,19 +67,14 @@ export default function CustomDialog({
           </DialogDescription>
         </DialogHeader>
 
+        {/* ✅ 要么显示创建，要么显示表格 */}
         {!hasSession || !sessionId ? (
           date ? (
             <CreateSessionPrompt date={date} onCreate={handleCreateSession} />
           ) : null
         ) : (
           <>
-            <PlayerTable
-              records={records} // ✅ 直接用
-              setRecords={setRecords}
-              refetch={refetch}
-              sessionId={sessionId}
-              playerOptions={playerOptions}
-            />
+            <PlayerTableContainer sessionId={sessionId} />
             <div className="mt-6 flex justify-end">
               <DeleteSessionButton sessionId={sessionId} onDeleted={onClose} />
             </div>
