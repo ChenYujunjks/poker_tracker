@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import PlayerTable from "./PlayerTable";
@@ -12,14 +13,12 @@ import DeleteSessionButton from "./sessions/DeleteSessionButton";
 
 import { useAllPlayers } from "@/hooks/useAllPlayers";
 import { useGameRecords } from "@/hooks/useGameRecords";
-import { useCreateSession } from "@/hooks/useCreateSession";
-
-import { useMemo } from "react";
+import { useCreateSession } from "@/hooks/sessions/useCreateSession";
 
 type Props = {
   open: boolean;
   onClose: () => void;
-  date: string | null; // ✅ 改成字符串
+  date: string | null;
   hasSession: boolean;
   sessionId: number | null;
   onSessionCreated?: (sessionId: number, date: string) => void;
@@ -74,6 +73,9 @@ export default function CustomDialog({
           <DialogTitle>
             {date ? `${date} 的游戏记录` : "请选择日期"}
           </DialogTitle>
+          <DialogDescription>
+            在这里查看或管理该日期的游戏 Session
+          </DialogDescription>
         </DialogHeader>
 
         {!hasSession || !sessionId ? (

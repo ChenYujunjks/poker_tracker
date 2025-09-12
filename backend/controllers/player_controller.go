@@ -2,7 +2,6 @@
 package controllers
 
 import (
-	"log"
 	"net/http"
 	"poker-tracker/db"
 	"poker-tracker/model"
@@ -46,7 +45,7 @@ func GetPlayers(c *gin.Context) {
 			Name: p.Name,
 		})
 	}
-	log.Printf("返回玩家列表: %v", response)
+	//log.Printf("返回玩家列表: %v", response)
 	c.JSON(http.StatusOK, response)
 
 }

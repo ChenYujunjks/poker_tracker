@@ -1,9 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useDeleteSession } from "@/hooks/useDeleteSession";
 import { toast } from "sonner";
 import ConfirmDialog from "@/components/ConfirmDialog";
+
+import { useDeleteSession } from "@/hooks/sessions/useDeleteSession";
 
 type Props = {
   sessionId: number;

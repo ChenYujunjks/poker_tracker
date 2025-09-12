@@ -48,9 +48,10 @@ export default function CustomCalendar() {
     <>
       <DayPicker
         mode="single"
-        selected={activeDate ? new Date(activeDate) : undefined}
+        selected={activeDate ? toLocalDate(activeDate) : undefined}
         onDayClick={(d) => {
-          console.log("你点击了日期:", d, "格式化后:", key(d));
+          console.log("点击的原始 Date:", d.toString());
+          console.log("key(d):", key(d));
           setActiveDate(key(d));
         }}
         modifiers={modifiers}
@@ -76,10 +77,18 @@ export default function CustomCalendar() {
   );
 }
 
+//help funcitons
+
 // 把 Date 转成 YYYY-MM-DD
 const key = (d: Date) => {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
+};
+
+// 代替 new Date("2025-09-11")
+const toLocalDate = (dateStr: string) => {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(y, m - 1, d); // ✅ 本地时区日期
 };
