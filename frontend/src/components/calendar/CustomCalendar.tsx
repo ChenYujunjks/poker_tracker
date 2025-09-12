@@ -10,14 +10,12 @@ const DayPicker = dynamic(
 
 export default function CustomCalendar() {
   const [events, setEvents] = useState<Record<string, string[]>>({});
-  const [activeDate, setActiveDate] = useState<Date | null>(null);
+  const [activeDate, setActiveDate] = useState<string | null>(null);
   const [sessionIdMap, setSessionIdMap] = useState<Record<string, number>>({});
 
-  // 创建新的 session
-  const handleSessionCreated = (sessionId: number, date: Date) => {
-    const k = key(date);
-    setEvents((prev) => ({ ...prev, [k]: [] }));
-    setSessionIdMap((prev) => ({ ...prev, [k]: sessionId }));
+  const handleSessionCreated = (sessionId: number, date: string) => {
+    setEvents((prev) => ({ ...prev, [date]: [] }));
+    setSessionIdMap((prev) => ({ ...prev, [date]: sessionId }));
   };
 
   useEffect(() => {
@@ -30,7 +28,6 @@ export default function CustomCalendar() {
         return res.json();
       })
       .then((data: { id: number; date: string }[]) => {
-        // ✅ 后端直接返回 YYYY-MM-DD
         const newEvents: Record<string, string[]> = {};
         const newSessionMap: Record<string, number> = {};
         data.forEach((session) => {
@@ -51,8 +48,11 @@ export default function CustomCalendar() {
     <>
       <DayPicker
         mode="single"
-        selected={activeDate ?? undefined}
-        onDayClick={(d) => setActiveDate(d)}
+        selected={activeDate ? new Date(activeDate) : undefined}
+        onDayClick={(d) => {
+          console.log("你点击了日期:", d, "格式化后:", key(d));
+          setActiveDate(key(d));
+        }}
         modifiers={modifiers}
         modifiersClassNames={{
           hasEvent: "hasEvent",
@@ -67,16 +67,16 @@ export default function CustomCalendar() {
       <CustomDialog
         open={!!activeDate}
         onClose={() => setActiveDate(null)}
-        date={activeDate}
-        hasSession={activeDate ? !!events[key(activeDate)] : false}
-        sessionId={activeDate ? sessionIdMap[key(activeDate)] ?? null : null}
-        onSessionCreated={handleSessionCreated}
+        date={activeDate} // ✅ 传字符串，而不是 Date
+        hasSession={activeDate ? !!events[activeDate] : false}
+        sessionId={activeDate ? sessionIdMap[activeDate] ?? null : null}
+        onSessionCreated={(id, d) => handleSessionCreated(id, d)}
       />
     </>
   );
 }
 
-// ✅ 统一 key 函数，保证前后端一致
+// 把 Date 转成 YYYY-MM-DD
 const key = (d: Date) => {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");

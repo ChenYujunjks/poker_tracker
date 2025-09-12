@@ -1,9 +1,8 @@
 // components/withAuth.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, ComponentType, JSX } from "react";
 import { useRouter } from "next/navigation";
-import { ComponentType, JSX } from "react";
 
 // ✅ 添加类型限制
 export default function WithAuth<P extends JSX.IntrinsicAttributes>(
