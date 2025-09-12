@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import EditableCell from "./Editor/EditableCell";
 import SelectEditor from "./Editor/EditableSelect";
@@ -8,18 +10,16 @@ import type { PlayerRecord } from "@/lib/types";
 
 type Props = {
   records: PlayerRecord[];
-  setRecords: (records: PlayerRecord[]) => void;
-  refetch: () => void;
+  addRecord: (record: Omit<PlayerRecord, "id">) => Promise<void>;
+  updateRecord: (id: number, field: string, value: any) => Promise<void>;
   playerOptions: { id: number; name: string }[];
-  sessionId: number;
 };
 
 export default function PlayerTable({
   records,
-  setRecords,
-  refetch,
+  addRecord,
+  updateRecord,
   playerOptions,
-  sessionId,
 }: Props) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [adding, setAdding] = useState(false);
@@ -31,42 +31,35 @@ export default function PlayerTable({
     paid: false,
   });
 
+  // 更新单元格
   const handleCellSave = async (
     rowId: number,
     field: string,
     newValue: any
   ) => {
-    if (!rowId || typeof rowId !== "number") {
-      toast.error("非法记录 ID，无法更新");
-      return;
-    }
-
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(
-        `http://localhost:8080/api/game-records/${rowId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ [field]: newValue }),
-        }
-      );
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || "更新失败");
-      }
-
-      const updated = records.map((rec) =>
-        rec.id === rowId ? { ...rec, [field]: newValue } : rec
-      );
-      setRecords(updated);
+      await updateRecord(rowId, field, newValue);
       toast.success("已保存");
     } catch (err: any) {
       toast.error(err.message || "保存失败");
+    }
+  };
+
+  // 添加新行
+  const handleAdd = async () => {
+    try {
+      await addRecord(newRecord);
+      toast.success("添加成功");
+      setAdding(false);
+      setNewRecord({
+        playerId: -1,
+        name: "",
+        buyIn: 0,
+        cashOut: 0,
+        paid: false,
+      });
+    } catch (err: any) {
+      toast.error(err.message || "添加失败");
     }
   };
 
@@ -187,41 +180,7 @@ export default function PlayerTable({
             <td className="px-2 py-1">
               <button
                 className="px-2 py-1 bg-green-600 text-white rounded mr-2"
-                onClick={async () => {
-                  const token = localStorage.getItem("token");
-                  const res = await fetch(
-                    "http://localhost:8080/api/game-records",
-                    {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                      },
-                      body: JSON.stringify({
-                        session_id: sessionId,
-                        player_id: newRecord.playerId,
-                        buy_in: newRecord.buyIn,
-                        cash_out: newRecord.cashOut,
-                        paid: newRecord.paid,
-                      }),
-                    }
-                  );
-
-                  if (res.ok) {
-                    toast.success("添加成功");
-                    setAdding(false);
-                    setNewRecord({
-                      playerId: -1,
-                      name: "",
-                      buyIn: 0,
-                      cashOut: 0,
-                      paid: false,
-                    });
-                    refetch(); // ✅ 添加后重新拉取数据
-                  } else {
-                    alert("添加失败");
-                  }
-                }}
+                onClick={handleAdd}
               >
                 添加
               </button>
