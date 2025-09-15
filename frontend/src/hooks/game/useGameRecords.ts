@@ -97,7 +97,6 @@ export function useGameRecords(
 
   return {
     records,
-    setRecords, //有待商榷
     loading,
     fetchRecords,
     updateRecord,
